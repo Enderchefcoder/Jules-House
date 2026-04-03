@@ -1,0 +1,19 @@
+name: Auto-merge Jules PRs
+on:
+  pull_request:
+    types: [opened, reopened]
+
+# This part replaces the need for a manual secret key
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge for PR
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}} # GitHub provides this automatically
