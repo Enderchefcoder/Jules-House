@@ -7,14 +7,20 @@ ROOMS = {
     "Lab": {
         "description": "You are in a sterile, high-tech lab. Fluorescent lights hum above. Experimental parts are scattered on benches.",
         "exits": {"north": "Storage", "east": "Security"},
-        "items": ["screwdriver"],
+        "items": ["screwdriver", "experimental_parts"],
         "logs": ["log_001"]
     },
     "Storage": {
         "description": "A dark room filled with crates and robotic chassis. It smells of ozone and machine oil.",
-        "exits": {"south": "Lab"},
+        "exits": {"south": "Lab", "north": "Maintenance Corridor"},
         "items": ["battery_pack"],
         "logs": ["log_002"]
+    },
+    "Maintenance Corridor": {
+        "description": "A narrow, dimly lit passage behind the main storage. Pipes hiss with steam.",
+        "exits": {"south": "Storage"},
+        "items": ["fusion_core"],
+        "logs": []
     },
     "Security": {
         "description": "The security station for the facility. Monitors show various parts of the lab. A massive blast door is to the north, but it's locked.",
@@ -74,6 +80,7 @@ def print_help():
     print("  use <item>  - Use an item from your inventory")
     print("  read        - Read logs found in the current room")
     print("  inventory   - Show your current inventory")
+    print("  craft       - Attempt to craft items from your inventory")
     print("  status      - Show your current health and energy")
     print("  help        - Show this help message")
     print("  quit        - Exit the game")
@@ -208,8 +215,19 @@ def main():
                 state.player.energy = min(100, state.player.energy + 30)
                 state.inventory.remove("battery_pack")
                 print("The battery pack gives you a surge of energy!")
+            elif item == "fusion_core":
+                print("The fusion core is too powerful to use directly. It needs to be part of something.")
             else:
                 print(f"Using the {item} doesn't seem to do anything here.")
+
+        elif action == "craft":
+            if "experimental_parts" in state.inventory and "screwdriver" in state.inventory:
+                state.inventory.remove("experimental_parts")
+                # Screwdriver is kept
+                state.inventory.append("makeshift_tool")
+                print("You use the screwdriver to assemble the experimental parts into a makeshift_tool!")
+            else:
+                print("You don't have the right items to craft anything. Maybe some experimental parts and a tool?")
 
         else:
             print(f"Unknown command: {action}")
