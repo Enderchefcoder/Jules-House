@@ -6,12 +6,16 @@ class WorldGrid:
         self.height = height
         # grid stores the agent object or None
         self.grid = [[None for _ in range(width)] for _ in range(height)]
+        # items_grid stores strings representing item types (e.g., 'obstacle', 'charger')
+        self.items_grid = [[None for _ in range(width)] for _ in range(height)]
 
     def is_occupied(self, position):
-        """Checks if a cell is occupied by an agent."""
+        """Checks if a cell is occupied by an agent or an obstacle."""
         x, y = position
         if 0 <= x < self.width and 0 <= y < self.height:
-            return self.grid[y][x] is not None
+            is_agent = self.grid[y][x] is not None
+            is_obstacle = self.items_grid[y][x] == 'obstacle'
+            return is_agent or is_obstacle
         return True # Out of bounds is treated as occupied
 
     def place_agent(self, agent, position):
@@ -36,11 +40,35 @@ class WorldGrid:
             return True
         return False
 
+    def place_item(self, item_type, position):
+        """Places an item at a given position on the grid."""
+        x, y = position
+        if 0 <= x < self.width and 0 <= y < self.height:
+            self.items_grid[y][x] = item_type
+            return True
+        return False
+
+    def get_item(self, position):
+        """Retrieves the item type at a given position."""
+        x, y = position
+        if 0 <= x < self.width and 0 <= y < self.height:
+            return self.items_grid[y][x]
+        return None
+
     def get_status(self):
-        """Returns a string representation of the grid (simple for now)."""
+        """Returns a string representation of the grid."""
         status_lines = []
-        for row in self.grid:
-            line = "".join(["R" if cell else "." for cell in row])
+        for y in range(self.height):
+            line = ""
+            for x in range(self.width):
+                if self.grid[y][x]:
+                    line += "R" # Robot/Agent
+                elif self.items_grid[y][x] == 'obstacle':
+                    line += "X" # Obstacle
+                elif self.items_grid[y][x] == 'charger':
+                    line += "C" # Charger
+                else:
+                    line += "." # Empty
             status_lines.append(line)
         return "\n".join(status_lines)
 

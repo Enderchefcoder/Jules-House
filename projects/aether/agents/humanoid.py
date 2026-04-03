@@ -1,4 +1,5 @@
 import random
+from utils.pathfinding import a_star
 
 class HumanoidAgent:
     """A humanoid robot agent for the AETHER simulation."""
@@ -30,20 +31,60 @@ class HumanoidAgent:
         self.status = "Recharging"
         print(f"{self.name} recharged to {self.battery}%.")
 
-    def perform_task(self):
-        """A simple method for the agent to decide and perform an action."""
-        if self.battery < 20:
-            self.recharge()
-            return
+    def find_nearest_charger(self):
+        """Scans the world for the nearest charger."""
+        min_dist = float('inf')
+        nearest = None
+        for y in range(self.world.height):
+            for x in range(self.world.width):
+                if self.world.get_item((x, y)) == 'charger':
+                    dist = abs(self.position[0] - x) + abs(self.position[1] - y)
+                    if dist < min_dist:
+                        min_dist = dist
+                        nearest = (x, y)
+        return nearest
 
-        # Random movement for simulation
-        dx = random.choice([-1, 0, 1])
-        dy = random.choice([-1, 0, 1])
-        if dx != 0 or dy != 0:
-            if not self.move(dx, dy):
-                print(f"{self.name} could not move.")
+    def perform_task(self):
+        """Decides and performs an action based on state and battery."""
+        if self.battery < 10:
+             # Critical battery, try to recharge if on charger, else stay still
+             if self.world.get_item(self.position) == 'charger':
+                 self.recharge()
+             else:
+                 self.status = "Low Power Mode"
+             return
+
+        # If battery is low, find and move to charger
+        if self.battery < 30:
+            target = self.find_nearest_charger()
+            if target:
+                if self.position == target:
+                    self.recharge()
+                    return
+
+                path = a_star(self.world, self.position, target)
+                if path and len(path) > 1:
+                    next_step = path[1]
+                    dx = next_step[0] - self.position[0]
+                    dy = next_step[1] - self.position[1]
+                    self.move(dx, dy)
+                    self.status = f"Heading to charger at {target}"
+                    return
+
+        # Random movement for simulation, avoiding obstacles
+        moves = [(0,1), (0,-1), (1,0), (-1,0), (0,0)]
+        random.shuffle(moves)
+        for dx, dy in moves:
+            if dx == 0 and dy == 0:
+                self.status = "Observing"
+                break
+
+            new_pos = (self.position[0] + dx, self.position[1] + dy)
+            if not self.world.is_occupied(new_pos):
+                if self.move(dx, dy):
+                    break
         else:
-            self.status = "Observing"
+            self.status = "Stuck"
 
     def __repr__(self):
         return f"HumanoidAgent({self.name}, {self.position}, {self.battery}%)"
