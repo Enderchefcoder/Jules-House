@@ -30,6 +30,13 @@ class World3D:
             return True
         return False
 
+    def remove_item(self, pos):
+        """Removes an item (not an obstacle) from the specified position."""
+        if pos in self.items:
+            del self.items[pos]
+            return True
+        return False
+
     def move_agent(self, agent, from_pos, to_pos):
         if not (0 <= to_pos[0] < self.width and 0 <= to_pos[1] < self.height and 0 <= to_pos[2] < self.depth):
             return False
@@ -40,4 +47,6 @@ class World3D:
         return False
 
     def get_item(self, pos):
+        if pos in self.obstacles:
+            return 'obstacle'
         return self.items.get(pos)

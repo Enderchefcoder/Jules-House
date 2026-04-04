@@ -37,6 +37,15 @@ def render_grid(world, filename="visual/aether_v1.png"):
                  ax.text(x + 0.5, y + 0.5, 'C', ha='center', va='center',
                          fontsize=20, color='green', fontweight='bold')
                  ax.add_patch(plt.Circle((x + 0.5, y + 0.5), 0.2, color='green', alpha=0.3))
+            elif item == 'Metal':
+                 ax.text(x + 0.5, y + 0.5, 'M', ha='center', va='center',
+                         fontsize=16, color='gray', fontweight='bold')
+            elif item == 'Data':
+                 ax.text(x + 0.5, y + 0.5, 'D', ha='center', va='center',
+                         fontsize=16, color='cyan', fontweight='bold')
+            elif item == 'market_hub':
+                 ax.text(x + 0.5, y + 0.5, 'H', ha='center', va='center',
+                         fontsize=16, color='orange', fontweight='bold')
 
     ax.set_title("AETHER Simulation State", fontsize=16)
     ax.set_xlim(0, world.width)
@@ -50,7 +59,7 @@ def render_grid_3d(world, filename="visual/aether_3d_v1.png"):
     """Renders the World3D state using matplotlib 3D and saves it."""
     os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(12, 10))
     ax = fig.add_subplot(111, projection='3d')
 
     # Render obstacles
@@ -58,45 +67,48 @@ def render_grid_3d(world, filename="visual/aether_3d_v1.png"):
         obs_x, obs_y, obs_z = zip(*world.obstacles)
         ax.scatter(obs_x, obs_y, obs_z, c='red', marker='s', s=100, label='Obstacle', alpha=0.5)
 
-    # Render items (chargers)
-    chargers = [pos for pos, itype in world.items.items() if itype == 'charger']
-    if chargers:
-        ch_x, ch_y, ch_z = zip(*chargers)
-        ax.scatter(ch_x, ch_y, ch_z, c='green', marker='o', s=100, label='Charger', alpha=0.8)
+    # Render items
+    items_by_type = {}
+    for pos, itype in world.items.items():
+        if itype not in items_by_type: items_by_type[itype] = []
+        items_by_type[itype].append(pos)
+
+    color_map = {
+        'charger': ('green', 'o', 'Charger'),
+        'Metal': ('gray', 'h', 'Metal Resource'),
+        'Data': ('cyan', 'D', 'Data Resource'),
+        'market_hub': ('orange', 'P', 'Market Hub')
+    }
+
+    for itype, positions in items_by_type.items():
+        if positions and itype in color_map:
+            color, marker, label = color_map[itype]
+            x, y, z = zip(*positions)
+            ax.scatter(x, y, z, c=color, marker=marker, s=100, label=label, alpha=0.8)
 
     # Render agents
     if world.agents:
         ag_pos = list(world.agents.keys())
         ag_x, ag_y, ag_z = zip(*ag_pos)
         ax.scatter(ag_x, ag_y, ag_z, c='blue', marker='^', s=200, label='Humanoid', alpha=1.0)
-        # Draw a simple "stick figure" humanoid for one agent if possible
-        # (This is a simplified visual representation)
+
+        for pos, agent in world.agents.items():
+            ax.text(pos[0], pos[1], pos[2] + 0.5, agent.name, color='blue', fontsize=8)
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_title("AETHER 3D Humanoid Simulation", fontsize=16)
-    ax.legend()
+    ax.set_title("AETHER Integrated Simulation (AETHER + CHRONOS)", fontsize=16)
+    ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
 
     ax.set_xlim(0, world.width)
     ax.set_ylim(0, world.height)
     ax.set_zlim(0, world.depth)
 
+    plt.tight_layout()
     plt.savefig(filename)
     plt.close()
     print(f"3D Visualization saved to {filename}")
 
 if __name__ == "__main__":
-    # Internal test
-    from world.grid import WorldGrid
-    w = WorldGrid(10, 10)
-    w.place_item('obstacle', (2, 2))
-    w.place_item('obstacle', (2, 3))
-    w.place_item('charger', (8, 8))
-
-    class FakeAgent: pass
-    w.place_agent(FakeAgent(), (5, 5))
-
-    render_grid(w, "visual/aether_test.png")
-    # Also save as v1 as per plan
-    render_grid(w, "visual/aether_v1.png")
+    print("Visualizer updated.")
