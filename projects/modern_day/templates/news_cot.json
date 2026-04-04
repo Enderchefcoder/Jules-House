@@ -1,0 +1,18 @@
+{
+  "project": "ModernDay AI Corpus",
+  "template": "Daily News Q/A + CoT",
+  "entry_schema": {
+    "question": "What is the core breakthrough or event in [Context/Article Title] and what are its immediate implications?",
+    "answer": {
+      "thought_process": "<think>\n1. Extract key facts from the source (Who, What, Where, When, Why).\n2. Identify the broader context (Tech Trend, Geopolitical Shift, Scientific Milestone).\n3. Analyze immediate and long-term implications.\n4. Formulate a structured response.\n</think>",
+      "content": "A high-fidelity, structured summary and analysis of the news event, following the logic established in the thought process."
+    }
+  },
+  "example_entry": {
+    "question": "What is the core breakthrough in the Google Gemma 4 release (April 3, 2026) and what are its immediate implications?",
+    "answer": {
+      "thought_process": "<think>\n1. Core Event: Release of Google Gemma 4 (April 3, 2026).\n2. Breakthroughs: Improved tool calling, local execution stability, and native reasoning capabilities.\n3. Implications: Lower barrier to entry for high-performance agentic systems; debate over 'day-1' support for local engines (Ollama/llama.cpp).\n4. Plan: State the release, highlight technical upgrades, and discuss the ecosystem's immediate reaction.\n</think>",
+      "content": "On April 3rd, 2026, Google released Gemma 4, a major update to its open model series. The core breakthrough lies in its native reasoning architecture, which significantly improves tool calling reliability—a critical component for agentic AI. Immediate implications include a shift in developer focus toward building complex, local agent swarms, though initial friction has been noted regarding tool calling support in popular local inference engines like Ollama."
+    }
+  }
+}
