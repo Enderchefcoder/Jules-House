@@ -5,6 +5,7 @@ class SimulationEngine:
 
     def __init__(self, world):
         self.world = world
+        self.is_3d = hasattr(world, 'depth')
         self.agents = []
         self.current_step = 0
         self.is_running = False
