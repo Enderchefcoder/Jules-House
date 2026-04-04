@@ -46,6 +46,46 @@ def render_grid(world, filename="visual/aether_v1.png"):
     plt.close()
     print(f"Visualization saved to {filename}")
 
+def render_grid_3d(world, filename="visual/aether_3d_v1.png"):
+    """Renders the World3D state using matplotlib 3D and saves it."""
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Render obstacles
+    if world.obstacles:
+        obs_x, obs_y, obs_z = zip(*world.obstacles)
+        ax.scatter(obs_x, obs_y, obs_z, c='red', marker='s', s=100, label='Obstacle', alpha=0.5)
+
+    # Render items (chargers)
+    chargers = [pos for pos, itype in world.items.items() if itype == 'charger']
+    if chargers:
+        ch_x, ch_y, ch_z = zip(*chargers)
+        ax.scatter(ch_x, ch_y, ch_z, c='green', marker='o', s=100, label='Charger', alpha=0.8)
+
+    # Render agents
+    if world.agents:
+        ag_pos = list(world.agents.keys())
+        ag_x, ag_y, ag_z = zip(*ag_pos)
+        ax.scatter(ag_x, ag_y, ag_z, c='blue', marker='^', s=200, label='Humanoid', alpha=1.0)
+        # Draw a simple "stick figure" humanoid for one agent if possible
+        # (This is a simplified visual representation)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title("AETHER 3D Humanoid Simulation", fontsize=16)
+    ax.legend()
+
+    ax.set_xlim(0, world.width)
+    ax.set_ylim(0, world.height)
+    ax.set_zlim(0, world.depth)
+
+    plt.savefig(filename)
+    plt.close()
+    print(f"3D Visualization saved to {filename}")
+
 if __name__ == "__main__":
     # Internal test
     from world.grid import WorldGrid

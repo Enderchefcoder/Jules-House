@@ -35,5 +35,12 @@ Robotics is being used as a strategic tool to address global labor shortages and
 - **Attracting Talent:** Advanced automation makes workplaces more attractive to younger, tech-savvy workers.
 - **Upskilling:** Governments and companies are focusing on programs to help the human workforce work alongside robotic "allies."
 
+## 6. Breakthroughs in Neural Architecture (2026 Focus)
+
+As of early 2026, the industry is witnessing a "Hardware Plateau," shifting the focus to software intelligence.
+- **PReLU and Adaptive Activations:** Parametric Rectified Linear Units (PReLU) have become standard in low-latency robotic controllers, allowing models to learn the optimal activation slope for specific joints and sensors.
+- **Foundation Models Grounded in Physics:** Rather than requiring thousands of simulation hours, humanoids are now leveraging internet-scale data grounded in physical constraints, allowing them to learn tasks by observing humans once or twice.
+- **3D Spatial Awareness:** The transition from 2D planning to 3D voxel-based navigation is critical for humanoids moving into personal and healthcare settings.
+
 ---
-*Source: International Federation of Robotics (IFR) Report, January 8, 2026.*
+*Source: IFR Report (Jan 2026) and industry analysis (April 2026).*
