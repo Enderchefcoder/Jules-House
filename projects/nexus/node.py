@@ -54,6 +54,24 @@ class NexusNode:
     def __repr__(self):
         return f"NexusNode({self.name}, CPU: {self.cpu_capacity}, RAM: {self.ram_capacity}, Bal: {self.balance:.2f})"
 
+class ComputeMarket:
+    """Simulates a market for compute resources."""
+    def __init__(self, nodes):
+        self.nodes = nodes
+
+    def request_compute(self, requester_name, cpu_req, ram_req, credits_offered):
+        """Attempts to place a compute task on an available node."""
+        for node in self.nodes:
+            if node.accept_task(f"Remote_{requester_name}", cpu_req, ram_req, credits_offered):
+                return True
+        return False
+
+    def get_inference_cost(self):
+        return 2.5 # Credits per RobotBrain inference
+
+    def get_pathfinding_cost(self, distance):
+        return distance * 0.1 # Credits per unit of distance
+
 def run_nexus_test():
     # Initialize network
     nodes = [NexusNode(f"Worker-{i}") for i in range(3)]
