@@ -9,8 +9,29 @@ try:
 except ImportError:
     Market = None
 
+class MessageBus:
+    """A simple message bus for agent communication."""
+    def __init__(self):
+        self.messages = []
+
+    def post(self, sender, content, type="info"):
+        self.messages.append({
+            "sender": sender,
+            "content": content,
+            "type": type,
+            "step": None # To be filled by engine
+        })
+
+    def get_messages(self, type=None):
+        if type:
+            return [m for m in self.messages if m["type"] == type]
+        return self.messages
+
+    def clear_old_messages(self, current_step, max_age=5):
+        self.messages = [m for m in self.messages if m["step"] is not None and current_step - m["step"] <= max_age]
+
 class SimulationEngine:
-    """The central engine that manages the AETHER simulation, now with a Market."""
+    """The central engine that manages the AETHER simulation, now with a Market and MessageBus."""
 
     def __init__(self, world):
         self.world = world
@@ -19,6 +40,7 @@ class SimulationEngine:
         self.current_step = 0
         self.is_running = False
         self.market = Market() if Market else None
+        self.message_bus = MessageBus()
 
     def add_agent(self, agent, position):
         """Adds an agent to the simulation at the specified position."""
@@ -40,7 +62,16 @@ class SimulationEngine:
             self.market.fluctuate()
             print(f"Market Prices: {self.market.resources}")
 
+        # Update message step and clear old ones
+        for m in self.message_bus.messages:
+            if m["step"] is None:
+                m["step"] = self.current_step
+        self.message_bus.clear_old_messages(self.current_step)
+
+        # Inject message bus into agents if they don't have it
         for agent in self.agents:
+            if hasattr(agent, 'message_bus') and agent.message_bus is None:
+                agent.message_bus = self.message_bus
             agent.perform_task()
 
         return True

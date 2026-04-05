@@ -13,9 +13,9 @@ except ImportError:
     Market = None
 
 class HumanoidAgent:
-    """A humanoid robot agent for the AETHER simulation with economic capabilities."""
+    """A humanoid robot agent for the AETHER simulation with economic and swarm capabilities."""
 
-    def __init__(self, name, world, position=(0, 0), market=None):
+    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None):
         self.name = name
         self.world = world
         self.position = position
@@ -28,6 +28,8 @@ class HumanoidAgent:
         self.inventory = {"Metal": 0, "Data": 0}
         self.balance = 500.0  # Starting capital
         self.market = market
+        self.message_bus = message_bus
+        self.shared_resource_locations = {} # {resource_type: [pos1, pos2]}
 
     def move(self, dx, dy):
         """Moves the agent on the world grid."""
@@ -36,6 +38,10 @@ class HumanoidAgent:
             return False
 
         new_pos = (self.position[0] + dx, self.position[1] + dy)
+        # Handle 3D coordinates if necessary
+        if self.is_3d and len(new_pos) == 2:
+            new_pos = (new_pos[0], new_pos[1], self.position[2])
+
         if self.world.move_agent(self, self.position, new_pos):
             self.position = new_pos
             self.battery -= 5
@@ -112,8 +118,26 @@ class HumanoidAgent:
             return torch.tensor([float(self.position[0]), float(self.position[1]),
                                 float(target[0]), float(target[1])])
 
+    def process_messages(self):
+        """Checks the message bus for updates from other agents."""
+        if not self.message_bus:
+            return
+
+        messages = self.message_bus.get_messages(type="resource_discovery")
+        for m in messages:
+            if m["sender"] != self.name:
+                res_type, pos = m["content"]
+                if res_type not in self.shared_resource_locations:
+                    self.shared_resource_locations[res_type] = []
+                if pos not in self.shared_resource_locations[res_type]:
+                    self.shared_resource_locations[res_type].append(pos)
+                    print(f"{self.name} received broadcast: {res_type} at {pos}")
+
     def perform_task(self):
         """Decides and performs an action based on state, battery, and economy."""
+        # 0. Process swarm communication
+        self.process_messages()
+
         # 1. Check current tile for collection or interaction
         current_item = self.world.get_item(self.position)
 
@@ -121,6 +145,12 @@ class HumanoidAgent:
             self.inventory[current_item] += 1
             if hasattr(self.world, 'remove_item'):
                 self.world.remove_item(self.position)
+
+            # Swarm intelligence: Broadcast discovery
+            if self.message_bus:
+                self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery")
+                print(f"{self.name} broadcasting discovery: {current_item} at {self.position}")
+
             print(f"{self.name} collected {current_item}. Inventory: {self.inventory}")
             self.status = f"Collected {current_item}"
             return
@@ -152,7 +182,20 @@ class HumanoidAgent:
             target = self.find_nearest_item("market_hub")
 
         if not target:
-            target = self.find_nearest_item(["Metal", "Data"])
+            # Check shared memory first
+            for res in ["Metal", "Data"]:
+                if res in self.shared_resource_locations and self.shared_resource_locations[res]:
+                    # Verify if item still exists at known location
+                    candidate = self.shared_resource_locations[res][0]
+                    if self.world.get_item(candidate) == res:
+                        target = candidate
+                        break
+                    else:
+                        # Stale information
+                        self.shared_resource_locations[res].pop(0)
+
+            if not target:
+                target = self.find_nearest_item(["Metal", "Data"])
 
         # 3. Move towards target
         if target:
