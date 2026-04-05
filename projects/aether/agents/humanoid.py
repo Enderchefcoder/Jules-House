@@ -9,13 +9,40 @@ try:
     import os
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
     from chronos.market import Market
+    from feel_ai.multimodal_encoder import MultimodalEncoder
+    from veritas.integrity import IntegrityManager
 except ImportError:
     Market = None
+    MultimodalEncoder = None
+    IntegrityManager = None
+
+class SensorySystem:
+    """An integrated sensory system that captures and signs agent observations."""
+    def __init__(self, agent_name):
+        self.encoder = MultimodalEncoder() if MultimodalEncoder else None
+        self.integrity = IntegrityManager() if IntegrityManager else None
+        self.agent_name = agent_name
+        self.last_packet = None
+
+    def capture_observation(self, world_snapshot_path, audio_vibe):
+        if not self.encoder:
+            return None
+
+        packet = self.encoder.generate_packet(world_snapshot_path, audio_vibe)
+        packet["agent"] = self.agent_name
+
+        if self.integrity:
+            import json
+            signature = self.integrity.sign_data(json.dumps(packet))
+            packet["signature"] = signature
+
+        self.last_packet = packet
+        return packet
 
 class HumanoidAgent:
     """A humanoid robot agent for the AETHER simulation with economic and swarm capabilities."""
 
-    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None):
+    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None, role="Generalist"):
         self.name = name
         self.world = world
         self.position = position
@@ -23,6 +50,19 @@ class HumanoidAgent:
         self.status = "Idle"
         self.is_3d = hasattr(world, 'depth')
         self.brain = RobotBrain(input_size=6 if self.is_3d else 4)
+        self.role = role
+
+        # Specialized attributes based on role
+        self.battery_cost = 5
+        self.inventory_capacity = 1
+        self.market_multiplier = 1.0
+
+        if role == "Scout":
+            self.battery_cost = 2
+        elif role == "Gatherer":
+            self.inventory_capacity = 10
+        elif role == "Trader":
+            self.market_multiplier = 1.25
 
         # Economic attributes
         self.inventory = {"Metal": 0, "Data": 0}
@@ -30,10 +70,11 @@ class HumanoidAgent:
         self.market = market
         self.message_bus = message_bus
         self.shared_resource_locations = {} # {resource_type: [pos1, pos2]}
+        self.sensory_system = SensorySystem(self.name)
 
     def move(self, dx, dy):
         """Moves the agent on the world grid."""
-        if self.battery < 5:
+        if self.battery < self.battery_cost:
             print(f"{self.name} battery too low to move!")
             return False
 
@@ -44,20 +85,20 @@ class HumanoidAgent:
 
         if self.world.move_agent(self, self.position, new_pos):
             self.position = new_pos
-            self.battery -= 5
+            self.battery -= self.battery_cost
             self.status = "Moving"
             return True
         return False
 
     def move_3d(self, dx, dy, dz):
         """Moves the agent in 3D space."""
-        if self.battery < 5:
+        if self.battery < self.battery_cost:
             print(f"{self.name} battery too low to move!")
             return False
         new_pos = (self.position[0] + dx, self.position[1] + dy, self.position[2] + dz)
         if self.world.move_agent(self, self.position, new_pos):
             self.position = new_pos
-            self.battery -= 5
+            self.battery -= self.battery_cost
             self.status = "Moving 3D"
             return True
         return False
@@ -66,6 +107,9 @@ class HumanoidAgent:
         """Simulates recharging the agent. Costs money if a market is present."""
         if self.market:
             price_per_unit = self.market.get_price("Energy") / 10.0 # Scaling price
+            # Traders get a discount on energy
+            if self.role == "Trader":
+                price_per_unit *= 0.8
             cost = amount * price_per_unit
             if self.balance >= cost:
                 self.balance -= cost
@@ -142,25 +186,28 @@ class HumanoidAgent:
         current_item = self.world.get_item(self.position)
 
         if current_item in ["Metal", "Data"]:
-            self.inventory[current_item] += 1
-            if hasattr(self.world, 'remove_item'):
-                self.world.remove_item(self.position)
+            if sum(self.inventory.values()) < self.inventory_capacity:
+                self.inventory[current_item] += 1
+                if hasattr(self.world, 'remove_item'):
+                    self.world.remove_item(self.position)
 
-            # Swarm intelligence: Broadcast discovery
-            if self.message_bus:
-                self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery")
-                print(f"{self.name} broadcasting discovery: {current_item} at {self.position}")
+                # Swarm intelligence: Broadcast discovery
+                if self.message_bus:
+                    self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery")
+                    print(f"{self.name} broadcasting discovery: {current_item} at {self.position}")
 
-            print(f"{self.name} collected {current_item}. Inventory: {self.inventory}")
-            self.status = f"Collected {current_item}"
-            return
+                print(f"{self.name} collected {current_item}. Inventory: {self.inventory}")
+                self.status = f"Collected {current_item}"
+                return
+            else:
+                self.status = "Inventory Full"
 
         if current_item == "market_hub":
             if self.market:
                 total_sale = 0
                 for res, amt in self.inventory.items():
                     if amt > 0:
-                        price = self.market.get_price(res)
+                        price = self.market.get_price(res) * self.market_multiplier
                         total_sale += price * amt
                         self.inventory[res] = 0
                 if total_sale > 0:
@@ -178,7 +225,7 @@ class HumanoidAgent:
         if self.battery < 30:
             target = self.find_nearest_item("charger")
 
-        if not target and (self.inventory["Metal"] > 0 or self.inventory["Data"] > 0):
+        if not target and sum(self.inventory.values()) >= self.inventory_capacity:
             target = self.find_nearest_item("market_hub")
 
         if not target:
