@@ -69,8 +69,15 @@ class HumanoidAgent:
         self.balance = 500.0  # Starting capital
         self.market = market
         self.message_bus = message_bus
+        self.task_manager = None
         self.shared_resource_locations = {} # {resource_type: [pos1, pos2]}
         self.sensory_system = SensorySystem(self.name)
+
+    def broadcast_emergency(self, level, message):
+        """Broadcasts an emergency message to the swarm."""
+        if self.message_bus:
+            self.message_bus.post(self.name, f"[{level}] {message}", type="emergency")
+            print(f"{self.name} BROADCAST EMERGENCY: {message}")
 
     def move(self, dx, dy):
         """Moves the agent on the world grid."""
@@ -240,6 +247,21 @@ class HumanoidAgent:
                     else:
                         # Stale information
                         self.shared_resource_locations[res].pop(0)
+
+            if not target:
+                # Check Task Manager for open tickets
+                if self.task_manager:
+                    import re
+                    open_tickets = self.task_manager.list_open_tickets()
+                    if open_tickets:
+                        # Pick the first one for now
+                        ticket = open_tickets[0]
+                        # Extract coordinates from title: "Scavenge Metal at (2, 2, 2)"
+                        match = re.search(r'\((\d+),\s*(\d+),\s*(\d+)\)', ticket.title)
+                        if match:
+                            target = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+                            print(f"{self.name} accepted task: {ticket.title}")
+                            self.task_manager.assign_ticket(ticket.id, self.name)
 
             if not target:
                 target = self.find_nearest_item(["Metal", "Data"])

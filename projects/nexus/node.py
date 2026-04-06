@@ -4,11 +4,23 @@ import random
 
 class NexusNode:
     """A single compute node in the decentralized NEXUS network."""
-    def __init__(self, name=None):
+    def __init__(self, name=None, node_type="Standard"):
         self.id = str(uuid.uuid4())[:8]
         self.name = name or f"Node-{self.id}"
-        self.cpu_capacity = random.randint(10, 100) # CPU Units
-        self.ram_capacity = random.randint(8, 128) # GB
+        self.node_type = node_type
+
+        # Base capacities
+        self.cpu_capacity = random.randint(10, 100)
+        self.ram_capacity = random.randint(8, 128)
+
+        # Specialized scaling
+        if node_type == "High-Compute":
+            self.cpu_capacity *= 2
+            self.ram_capacity = int(self.ram_capacity * 1.5)
+        elif node_type == "Low-Power":
+            self.cpu_capacity = int(self.cpu_capacity * 0.5)
+            self.ram_capacity = int(self.ram_capacity * 0.5)
+
         self.bandwidth = random.randint(100, 1000) # Mbps
         self.current_load = {"cpu": 0, "ram": 0}
         self.peers = []
@@ -24,6 +36,13 @@ class NexusNode:
         """Accepts a task if capacity allows and the reward is worth it."""
         if (self.current_load["cpu"] + cpu_req <= self.cpu_capacity and
             self.current_load["ram"] + ram_req <= self.ram_capacity):
+
+            # Specialized heuristics
+            if self.node_type == "High-Compute" and reward < 25:
+                return False # High-Compute nodes are expensive, ignore low rewards
+
+            if self.node_type == "Low-Power" and ram_req > 32:
+                return False # Low-Power nodes cannot handle memory-heavy tasks
 
             # Simple heuristic for acceptance
             if reward > (cpu_req * 0.5 + ram_req * 0.2):
