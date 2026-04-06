@@ -16,9 +16,10 @@ except ImportError:
     HeartbeatManager = None
 
 class MessageBus:
-    """A simple message bus for agent communication."""
+    """A simple message bus for agent communication with collective memory."""
     def __init__(self):
         self.messages = []
+        self.collective_memory = {} # {resource_type: [pos1, pos2, ...]}
 
     def post(self, sender, content, type="info"):
         self.messages.append({
@@ -27,6 +28,22 @@ class MessageBus:
             "type": type,
             "step": None # To be filled by engine
         })
+        # Auto-update collective memory for resource discoveries
+        if type == "resource_discovery":
+            res_type, pos = content
+            if res_type not in self.collective_memory:
+                self.collective_memory[res_type] = []
+            if pos not in self.collective_memory[res_type]:
+                self.collective_memory[res_type].append(pos)
+
+    def query_memory(self, resource_type):
+        """Returns known locations for a resource type."""
+        return self.collective_memory.get(resource_type, [])
+
+    def remove_from_memory(self, resource_type, pos):
+        """Removes a location from collective memory (e.g., if resource is depleted)."""
+        if resource_type in self.collective_memory and pos in self.collective_memory[resource_type]:
+            self.collective_memory[resource_type].remove(pos)
 
     def get_messages(self, type=None):
         if type:
@@ -49,7 +66,7 @@ class SimulationEngine:
         self.message_bus = MessageBus()
         self.hazard_manager = HazardManager(world) if HazardManager else None
         self.task_manager = TaskManager() if TaskManager else None
-        self.heartbeat_manager = HeartbeatManager() if HeartbeatManager else None
+        self.heartbeat_manager = HeartbeatManager(task_manager=self.task_manager) if HeartbeatManager else None
         if self.heartbeat_manager:
             self.heartbeat_manager.start()
 
@@ -88,7 +105,9 @@ class SimulationEngine:
                 agent.message_bus = self.message_bus
 
             if self.heartbeat_manager:
-                self.heartbeat_manager.pulse(agent.name)
+                # Only pulse if agent has battery
+                if hasattr(agent, 'battery') and agent.battery > 0:
+                    self.heartbeat_manager.pulse(agent.name)
 
             # Inject Task Manager
             if hasattr(agent, 'task_manager') and agent.task_manager is None:

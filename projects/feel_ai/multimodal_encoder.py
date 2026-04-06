@@ -53,14 +53,31 @@ class MultimodalEncoder:
             avg_energy = 0
 
         # Heuristic rules for mood
-        if avg_brightness > 180 and avg_energy < 50:
+        # Check for High-Contrast Chaos (Flickering light + loud noise)
+        is_flickering = False
+        try:
+            brightness_std = (sum((v - avg_brightness)**2 for v in brightness_values) / len(brightness_values))**0.5 if brightness_values else 0
+            if brightness_std > 50:
+                is_flickering = True
+        except Exception:
+            pass
+
+        if is_flickering and max_energy > 180:
+            return "Environmental Chaos / Sensory Overload"
+        elif avg_brightness > 200 and avg_energy < 40:
+            return "Ethereal / Overexposed Serenity"
+        elif avg_brightness > 180 and avg_energy < 80:
             return "Serene / High Visibility"
-        elif max_energy > 200:
-            return "High Intensity / Alert"
-        elif avg_brightness < 50 and avg_energy < 50:
+        elif max_energy > 220:
+            return "CRITICAL: High Intensity / Immediate Alert"
+        elif max_energy > 150:
+            return "Moderate Intensity / Active"
+        elif avg_brightness < 30 and avg_energy < 30:
+            return "Void-Like / Total Sensory Deprivation"
+        elif avg_brightness < 60 and avg_energy < 60:
             return "Gloomy / Low Energy"
         elif avg_brightness < 100 and max_energy > 150:
-            return "Tense / Chaotic"
+            return "Tense / Shadowed Movement"
         else:
             return "Neutral / Stable"
 

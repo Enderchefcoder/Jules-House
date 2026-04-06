@@ -18,15 +18,22 @@ from projects.helios.grid import EnergyGrid
 from projects.helios.solar_model import SolarModel
 
 def run_integrated_sim():
-    # 1. Initialize 3D World (Voxel Grid)
-    world = World3D(size=(10, 10, 10))
+    # 1. Initialize 3D World (Voxel Grid) - Scaled for 2026 demands
+    world = World3D(size=(15, 15, 15))
 
-    # 2. Setup Resources and Hubs
-    world.place_item("Metal", (2, 2, 2))
-    world.place_item("Metal", (8, 8, 8))
-    world.place_item("Data", (5, 5, 5))
+    # 2. Setup Resources and Hubs - Increased density
+    resource_positions = [
+        (2, 2, 2), (8, 8, 8), (5, 5, 5), (12, 12, 12), (3, 10, 4),
+        (10, 3, 10), (7, 7, 2), (1, 14, 5), (14, 1, 10), (6, 6, 6)
+    ]
+    for i, pos in enumerate(resource_positions):
+        res = "Metal" if i % 2 == 0 else "Data"
+        world.place_item(res, pos)
+
     world.place_item("charger", (0, 0, 0))
-    world.place_item("market_hub", (9, 9, 0))
+    world.place_item("charger", (14, 14, 14))
+    world.place_item("market_hub", (7, 7, 0))
+    world.place_item("market_hub", (14, 0, 14))
 
     # 3. Setup NEXUS Compute Market with diverse nodes
     nodes = [
@@ -46,11 +53,14 @@ def run_integrated_sim():
     energy_grid = EnergyGrid()
     solar_model = SolarModel()
 
-    # 6. Add Specialized Agents
+    # 6. Add Specialized Agents - Scaled Swarm
     agents = [
         HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout"),
+        HumanoidAgent("Scout-Delta", world, position=(13, 13, 13), role="Scout"),
         HumanoidAgent("Gatherer-Beta", world, position=(7, 7, 7), role="Gatherer"),
-        HumanoidAgent("Trader-Gamma", world, position=(0, 9, 0), role="Trader")
+        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 12, 3), role="Gatherer"),
+        HumanoidAgent("Trader-Gamma", world, position=(0, 9, 0), role="Trader"),
+        HumanoidAgent("Trader-Zeta", world, position=(14, 2, 14), role="Trader")
     ]
 
     for agent in agents:
@@ -65,8 +75,8 @@ def run_integrated_sim():
     print(f"Agents Active: {[a.name for a in agents]}")
     print(f"Roles: {[a.role for a in agents]}")
 
-    # 7. Run Simulation Steps
-    for i in range(1, 11):
+    # 7. Run Simulation Steps - Extended for depth
+    for i in range(1, 51):
         engine.step()
 
         # Update HELIOS Energy Grid

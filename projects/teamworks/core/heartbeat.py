@@ -3,9 +3,10 @@ import threading
 
 class HeartbeatManager:
     """Manages agent activation cycles and system pulse."""
-    def __init__(self, interval=5.0):
+    def __init__(self, interval=5.0, task_manager=None):
         self.interval = interval
         self.agents = {} # {agent_name: last_pulse}
+        self.task_manager = task_manager
         self.running = False
         self._thread = None
 
@@ -38,6 +39,12 @@ class HeartbeatManager:
             unhealthy = self.check_health()
             if unhealthy:
                 print(f"[ALARM] Unhealthy agents detected: {unhealthy}")
+                # Trigger task reassignment if TaskManager is present
+                if self.task_manager:
+                    for agent_name in unhealthy:
+                        reassigned_count = self.task_manager.reassign_tasks_for_agent(agent_name)
+                        if reassigned_count > 0:
+                            print(f"[Heartbeat] Reassigned {reassigned_count} tasks from offline agent: {agent_name}")
             time.sleep(self.interval)
 
     def stop(self):
