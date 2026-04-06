@@ -13,6 +13,11 @@ A framework for multi-agent collaboration. Includes:
 - **TaskManager**: Ticket-based goal distribution.
 - **ConflictResolver**: Priority-weighted resource contention resolution.
 - **HeartbeatManager**: Health monitoring for agent swarms.
+- **SwarmGovernor**: Executive policy enforcement.
+- **Ledger**: Decentralized transaction tracking.
+
+### 🛰️ [ARGUS](./projects/argus/) (Global Monitoring)
+Simulates global "Cyber-Physical Shocks" (market crashes, solar flares) to stress-test agent swarms.
 
 ### 🎨 [Feel For AI](./projects/feel_ai/) (Multimodal Sensory Tokens)
 Bridges the gap between raw waves/pixels and LLM understanding by encoding sensory data into "vibe" tokens.
