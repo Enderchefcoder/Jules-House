@@ -60,6 +60,16 @@ class TaskManager:
     def list_tickets_by_agent(self, agent_name):
         return [t for t in self.tickets.values() if t.assignee == agent_name]
 
+    def reassign_tasks_for_agent(self, agent_name):
+        """Re-opens all tasks assigned to an agent that has gone offline."""
+        count = 0
+        for ticket in self.tickets.values():
+            if ticket.assignee == agent_name and ticket.status != TaskStatus.COMPLETE:
+                ticket.assignee = None
+                ticket.update_status(TaskStatus.OPEN, f"Re-opened: Agent {agent_name} went offline.")
+                count += 1
+        return count
+
 if __name__ == "__main__":
     tm = TaskManager()
     tid = tm.create_ticket("Resource Scavenging", "Collect 10 Metal and 5 Data from Sector 7G.")

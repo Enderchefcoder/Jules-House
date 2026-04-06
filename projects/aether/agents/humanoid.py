@@ -227,44 +227,78 @@ class HumanoidAgent:
             if self.recharge():
                 return
 
-        # 2. Decide Target
+        # 2. Decide Target using RobotBrain for weight-based selection
         target = None
-        if self.battery < 30:
-            target = self.find_nearest_item("charger")
 
-        if not target and sum(self.inventory.values()) >= self.inventory_capacity:
-            target = self.find_nearest_item("market_hub")
+        # Calculate needs
+        survival_need = (100 - self.battery) / 100.0
+        profit_need = sum(self.inventory.values()) / self.inventory_capacity
+        task_need = 0.5 # Baseline interest in tasks
 
-        if not target:
-            # Check shared memory first
+        # Use Brain to weight these (Simulated for now, would be trained)
+        # Brain input: [survival_need, profit_need, task_need, role_id, balance_scaled, 0]
+        role_map = {"Scout": 0.1, "Gatherer": 0.5, "Trader": 0.9, "Generalist": 0.0}
+
+        # Ensure input size matches brain's input_size (which is 6 for 3D, 4 for 2D)
+        if self.is_3d:
+            brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0), self.balance/1000.0, 0.0])
+        else:
+            brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0)])
+
+        decision_weights = self.brain.forward(brain_input)
+        # Outputs: [weight_recharge, weight_market, weight_task, weight_explore]
+
+        # Find potential targets
+        charger_pos = self.find_nearest_item("charger")
+        market_pos = self.find_nearest_item("market_hub")
+
+        # Select target based on brain weights
+        options = []
+        if charger_pos: options.append((decision_weights[0].item(), charger_pos, "Charging"))
+        if market_pos: options.append((decision_weights[1].item(), market_pos, "Selling"))
+
+        # Task / Shared Memory
+        task_target = None
+        # Try Collective Memory first (new feature)
+        if self.message_bus and hasattr(self.message_bus, 'query_memory'):
             for res in ["Metal", "Data"]:
-                if res in self.shared_resource_locations and self.shared_resource_locations[res]:
-                    # Verify if item still exists at known location
-                    candidate = self.shared_resource_locations[res][0]
-                    if self.world.get_item(candidate) == res:
-                        target = candidate
-                        break
+                m_locs = self.message_bus.query_memory(res)
+                if m_locs:
+                    task_target = m_locs[0]
+                    # Verify
+                    if self.world.get_item(task_target) != res:
+                        self.message_bus.remove_from_memory(res, task_target)
+                        task_target = None
                     else:
-                        # Stale information
-                        self.shared_resource_locations[res].pop(0)
+                        break
 
-            if not target:
-                # Check Task Manager for open tickets
-                if self.task_manager:
-                    import re
-                    open_tickets = self.task_manager.list_open_tickets()
-                    if open_tickets:
-                        # Pick the first one for now
-                        ticket = open_tickets[0]
-                        # Extract coordinates from title: "Scavenge Metal at (2, 2, 2)"
-                        match = re.search(r'\((\d+),\s*(\d+),\s*(\d+)\)', ticket.title)
-                        if match:
-                            target = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
-                            print(f"{self.name} accepted task: {ticket.title}")
-                            self.task_manager.assign_ticket(ticket.id, self.name)
+        if not task_target and self.task_manager:
+            import re
+            open_tickets = self.task_manager.list_open_tickets()
+            if open_tickets:
+                ticket = open_tickets[0]
+                match = re.search(r'\((\d+),\s*(\d+),\s*(\d+)\)', ticket.title)
+                if match:
+                    task_target = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
 
-            if not target:
-                target = self.find_nearest_item(["Metal", "Data"])
+        if task_target: options.append((decision_weights[2].item(), task_target, "Task"))
+
+        # Nearest resource
+        resource_pos = self.find_nearest_item(["Metal", "Data"])
+        if resource_pos: options.append((decision_weights[3].item(), resource_pos, "Scavenging"))
+
+        if options:
+            # Pick highest weight
+            options.sort(key=lambda x: x[0], reverse=True)
+            target = options[0][1]
+            intent = options[0][2]
+            # Override for extreme battery low
+            if self.battery < 20 and charger_pos:
+                target = charger_pos
+                intent = "Emergency Charging"
+
+            # Print decision (for debugging)
+            # print(f"[{self.name}] Decision: {intent} (Weight: {options[0][0]:.2f}) Target: {target}")
 
         # 3. Move towards target
         if target:
