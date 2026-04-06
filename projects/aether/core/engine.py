@@ -90,6 +90,10 @@ class SimulationEngine:
             if self.heartbeat_manager:
                 self.heartbeat_manager.pulse(agent.name)
 
+            # Inject Task Manager
+            if hasattr(agent, 'task_manager') and agent.task_manager is None:
+                agent.task_manager = self.task_manager
+
             agent.perform_task()
 
         # Update hazards

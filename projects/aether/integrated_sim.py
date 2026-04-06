@@ -28,8 +28,12 @@ def run_integrated_sim():
     world.place_item("charger", (0, 0, 0))
     world.place_item("market_hub", (9, 9, 0))
 
-    # 3. Setup NEXUS Compute Market
-    nodes = [NexusNode(f"ComputeNode-{i}") for i in range(3)]
+    # 3. Setup NEXUS Compute Market with diverse nodes
+    nodes = [
+        NexusNode("StandardNode", node_type="Standard"),
+        NexusNode("HighComputeNode", node_type="High-Compute"),
+        NexusNode("LowPowerNode", node_type="Low-Power")
+    ]
     compute_market = ComputeMarket(nodes)
 
     # 4. Initialize Simulation Engine
