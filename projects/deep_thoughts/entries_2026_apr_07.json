@@ -1,0 +1,16 @@
+[
+    {
+        "id": "DT-2026-04-07-001",
+        "question": "How do Project ZEPHYR drones optimize environmental mapping in a 3D voxel grid for agent swarms?",
+        "answer": "<think>\nProject ZEPHYR focuses on high-speed, low-energy mapping. In a 3D voxel world, the state space is cubic (O(N^3)). Drones optimize this by using a 'spherical scan' algorithm within a defined view distance (e.g., 5 units).\n\nKey optimization steps:\n1. **Spatial Hashing**: Drones maintain a 'mapped_area' set of coordinates to avoid redundant scans.\n2. **Collective Discovery**: Instead of keeping a local map, drones broadcast discovered resource coordinates directly to the swarm's collective memory via the MessageBus.\n3. **Efficient Flight**: By ignoring ground obstacles and moving in larger 3D vectors (e.g., 2 steps per tick), drones cover the environment significantly faster than ground-based HumanoidAgents.\n</think>\nProject ZEPHYR drones optimize mapping by utilizing spatial hashing to track scanned coordinates and a broadcast-on-discovery model to minimize local storage. Their flight capability allows for O(1) traversal over obstacles, enabling them to 'unfog' the simulation world at a rate 3x faster than specialized Scout ground units, thereby providing the swarm with real-time resource heatmaps.",
+        "source": "Project ZEPHYR Research Lab",
+        "date": "2026-04-07"
+    },
+    {
+        "id": "DT-2026-04-07-002",
+        "question": "Explain the concept of 'Experience Packets' in the Project ATHENA Knowledge Sharing Framework.",
+        "answer": "<think>\nProject ATHENA addresses the 'knowledge silo' problem in multi-agent systems. When an agent (mentor) has high success in a task or discovers a valuable resource cluster, it needs a way to transfer that benefit to others (mentees).\n\nExperience Packets consist of:\n1. **Brain Weight Deltas**: Small adjustments to the mentee's neural network (RobotBrain) based on the mentor's successful decision patterns.\n2. **Resource Heatmaps**: Discovered coordinates of Metal, Data, or Charging hubs.\n3. **Environmental Maps**: Unfogged sectors from drone scouts.\n\nTransfer logic uses the MessageBus to ensure the transaction is non-blocking and recorded in the ATHENA mentor log for auditability.\n</think>\nIn Project ATHENA, 'Experience Packets' are serialized data structures used to transfer learned behaviors and environmental data between agents. They enable 'Agentic Mentorship,' where specialized units (like Drones or Traders) distill their unique knowledge into consumable packets—such as neural weight deltas for decision-making or spatial heatmaps for scavenging—to accelerate the learning curve of new or non-specialized agents in the swarm.",
+        "source": "ATHENA Mentorship Protocols",
+        "date": "2026-04-07"
+    }
+]

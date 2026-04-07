@@ -9,12 +9,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from projects.aether.world.world_3d import World3D
 from projects.aether.agents.humanoid import HumanoidAgent
 from projects.aether.agents.titan import HumanoidTitan
+from projects.zephyr.drone import DroneAgent
+from projects.athena.mentor import MentorSystem
 from projects.aether.core.engine import SimulationEngine
 from projects.aether.visualizer import render_grid_3d
 from projects.nexus.node import NexusNode, ComputeMarket
 from projects.aether.core.consensus import ConsensusManager
 from projects.teamworks.core.org_chart import OrgChart
 from projects.teamworks.core.conflict_resolver import ConflictResolver
+from projects.teamworks.core.semantic_merge import ConflictMerger
 from projects.teamworks.core.governor import SwarmGovernor
 from projects.teamworks.core.ledger import Ledger
 from projects.helios.grid import EnergyGrid
@@ -25,11 +28,12 @@ def run_integrated_sim():
     # 1. Initialize 3D World (Voxel Grid) - Scaled for 2026 demands
     world = World3D(size=(20, 20, 20))
 
-    # 2. Setup Resources and Hubs - Increased density
+    # 2. Setup Resources and Hubs - Increased density for longer sim
     resource_positions = [
         (2, 2, 2), (8, 8, 8), (5, 5, 5), (12, 12, 12), (3, 10, 4),
         (10, 3, 10), (7, 7, 2), (1, 14, 5), (14, 1, 10), (6, 6, 6),
-        (18, 18, 18), (15, 5, 15), (5, 15, 5), (19, 1, 2), (2, 19, 18)
+        (18, 18, 18), (15, 5, 15), (5, 15, 5), (19, 1, 2), (2, 19, 18),
+        (10, 10, 15), (15, 10, 10), (5, 19, 5), (19, 5, 19), (0, 10, 19)
     ]
     for i, pos in enumerate(resource_positions):
         res = "Metal" if i % 2 == 0 else "Data"
@@ -40,7 +44,7 @@ def run_integrated_sim():
     world.place_item("market_hub", (10, 10, 0))
     world.place_item("market_hub", (19, 0, 19))
 
-    # 3. Setup NEXUS Compute Market with diverse nodes
+    # 3. Setup NEXUS Compute Market
     nodes = [
         NexusNode("StandardNode", node_type="Standard"),
         NexusNode("HighComputeNode", node_type="High-Compute"),
@@ -51,17 +55,19 @@ def run_integrated_sim():
     # 4. Initialize Simulation Engine
     engine = SimulationEngine(world)
 
-    # 5. Initialize New Systems (TeamWorks, HELIOS, Swarm Consensus, ARGUS)
+    # 5. Initialize Core Systems (TeamWorks, HELIOS, Swarm Consensus, ARGUS, ATHENA)
     org_chart = OrgChart()
     conflict_resolver = ConflictResolver()
+    conflict_merger = ConflictMerger() # TeamWorks Intent Merging
     consensus_manager = ConsensusManager(engine)
     governor = SwarmGovernor(engine)
     ledger = Ledger()
     energy_grid = EnergyGrid()
     solar_model = SolarModel()
     argus = Satellite()
+    mentor_system = MentorSystem(engine.message_bus) # ATHENA
 
-    # 6. Add Specialized Agents - Scaled Swarm with TITAN
+    # 6. Add Specialized Agents - Scaled Swarm with TITAN and ZEPHYR Drones
     agents = [
         HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout"),
         HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout"),
@@ -69,22 +75,25 @@ def run_integrated_sim():
         HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer"),
         HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader"),
         HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader"),
-        HumanoidTitan("Titan-01", world, position=(5, 5, 5))
+        HumanoidTitan("Titan-01", world, position=(5, 5, 5)),
+        DroneAgent("Zephyr-01", world, position=(10, 10, 19)), # ZEPHYR Drone
+        DroneAgent("Zephyr-02", world, position=(5, 5, 15))
     ]
 
     for agent in agents:
         engine.add_agent(agent, agent.position)
-        org_chart.assign_role(agent.name, agent.role)
+        if hasattr(agent, 'role'):
+            org_chart.assign_role(agent.name, agent.role)
 
-    # Setup Hierarchy: Scout-Alpha is the Lead
+    # Setup Hierarchy
     org_chart.add_subordinate("Scout-Alpha", "Gatherer-Beta")
     org_chart.add_subordinate("Scout-Alpha", "Trader-Gamma")
 
-    print("\n--- 2026 Integrated Simulation: AETHER-TeamWorks-Feel-VERITAS-NEXUS-HELIOS-ARGUS ---")
+    print("\n--- 2026 Integrated Ecosystem: ZEPHYR-ATHENA-AETHER-TeamWorks-HELIOS-ARGUS ---")
     print(f"Agents Active: {[a.name for a in agents]}")
 
-    # 7. Run Simulation Steps - Extended for depth
-    for i in range(1, 101):
+    # 7. Run Simulation Steps - Extended to 150 for deeper emergence
+    for i in range(1, 151):
         engine.step()
 
         # Update ARGUS Global Monitoring
@@ -98,58 +107,35 @@ def run_integrated_sim():
         prod = solar_model.get_production() * argus.get_solar_modifier()
         energy_grid.update_price(prod)
 
-        # Periodically simulate sensory capture and signing (Feel AI + VERITAS)
-        if i % 5 == 0:
-            for agent in agents:
-                mock_img = f"visual/aether_integrated_test.png"
+        # Periodically simulate sensory capture (Feel AI + VERITAS)
+        if i % 10 == 0:
+            for agent in [a for a in agents if hasattr(a, 'sensory_system')]:
+                mock_img = f"visual/aether_complex_v1.png"
                 if os.path.exists(mock_img):
                     packet = agent.sensory_system.capture_observation(mock_img, "steady_hum")
                     if packet:
-                        print(f"[{agent.name}] Captured signed observation: {packet['mood_classification']} (SIG: {packet['signature'][:8]}...)")
+                        print(f"[{agent.name}] Signed Sensory Packet: {packet['mood_classification']}")
 
-        # Periodically simulate NEXUS compute transactions
-        if i % 6 == 0:
-            for agent in agents:
-                cost = compute_market.get_inference_cost() * argus.get_market_modifier()
-                if agent.balance >= cost:
-                    if compute_market.request_compute(agent.name, 10, 8, cost):
-                        agent.balance -= cost
-                        ledger.record_transaction(agent.name, "NEXUS-MARKET", "Compute", 1, cost)
-                        print(f"[{agent.name}] Purchased remote brain inference from NEXUS. Balance: {agent.balance:.2f}")
+        # ATHENA: Mentorship cycles
+        if i % 15 == 0:
+            mentor_system.distribute_experience(agents)
 
-        # Periodically simulate Swarm Consensus (Vote on Mission Priority)
-        if i % 10 == 0:
-            consensus_manager.initiate_vote("Mission Priority", ["Energy Gathering", "Data Scavenging", "Market Expansion"])
-            for agent in agents:
-                # Mock voting logic
-                vote = random.choice(["Energy Gathering", "Data Scavenging", "Market Expansion"])
-                consensus_manager.cast_vote(agent.name, vote)
-            winner = consensus_manager.tally_results()
-            if winner:
-                governor.apply_policy("Mission Priority", winner)
-
-        # Contention at Resource locations
-        positions = {}
-        for agent in agents:
-            if agent.position not in positions:
-                positions[agent.position] = []
-            positions[agent.position].append(agent)
-
-        for pos, pos_agents in positions.items():
-            if len(pos_agents) > 1 and world.get_item(pos) in ["Metal", "Data"]:
-                print(f"[EVENT] Contention at {pos}!")
-                winner = conflict_resolver.resolve_resource_conflict(pos_agents, pos)
+        # TeamWorks: Conflict Merging (Intent)
+        if i % 20 == 0:
+            # Simulate a task claim conflict
+            task_id = f"Critical-Resource-{i}"
+            competing_agents = random.sample([a for a in agents if a.role != "Drone"], 3)
+            winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
 
     # 8. Final Output
-    render_grid_3d(world, filename="visual/aether_complex_v1.png")
-    print("\n--- Simulation Summary ---")
+    render_grid_3d(world, filename="visual/aether_complex_v2.png")
+    print("\n--- Ecosystem Summary ---")
+    print(f"Total Steps: {i}")
+    print(f"ATHENA Sessions: {len(mentor_system.experience_log)}")
+    print(f"TeamWorks Merges: {conflict_merger.resolved_conflicts}")
+
     for agent in engine.agents:
         print(agent)
-
-    print(f"\nTotal Transaction Volume: {ledger.get_total_volume()}")
-    print("\n--- TeamWorks Organizational Summary ---")
-    for lead, subs in org_chart.hierarchy.items():
-        print(f"Lead: {lead} -> Subordinates: {subs}")
 
 if __name__ == "__main__":
     run_integrated_sim()

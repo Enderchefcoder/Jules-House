@@ -14,13 +14,18 @@ class HumanoidTitan(HumanoidAgent):
         self.can_build = True
 
     def build_outpost(self):
-        """Constructs a new charger/market hub if enough materials are present."""
+        """Constructs a new charger/market hub or high-efficiency Beacon."""
         if self.inventory.get("Metal", 0) >= self.build_materials["Metal"]:
             self.inventory["Metal"] -= self.build_materials["Metal"]
-            # Decide what to build
-            choice = random.choice(["charger", "market_hub"])
+            # Decide what to build: New Beacon type or standard hub
+            choice = random.choice(["charger", "market_hub", "outpost_beacon"])
             self.world.place_item(choice, self.position)
-            print(f"[TITAN] {self.name} constructed a {choice} at {self.position}!")
+
+            if choice == "outpost_beacon":
+                print(f"[TITAN] {self.name} constructed a HIGH-EFFICIENCY BEACON at {self.position}!")
+            else:
+                print(f"[TITAN] {self.name} constructed a {choice} at {self.position}!")
+
             self.status = f"Built {choice}"
             return True
         else:

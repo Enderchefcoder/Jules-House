@@ -99,13 +99,20 @@ class HumanoidAgent:
 
     def move_3d(self, dx, dy, dz):
         """Moves the agent in 3D space."""
-        if self.battery < self.battery_cost:
+        # Calculate effective battery cost (reduced near Outpost Beacons)
+        effective_cost = self.battery_cost
+        current_item = self.world.get_item(self.position)
+        if current_item == "outpost_beacon":
+            effective_cost = max(1, self.battery_cost // 2)
+            # print(f"[{self.name}] Beacon Bonus Active: Reduced movement cost to {effective_cost}")
+
+        if self.battery < effective_cost:
             print(f"{self.name} battery too low to move!")
             return False
         new_pos = (self.position[0] + dx, self.position[1] + dy, self.position[2] + dz)
         if self.world.move_agent(self, self.position, new_pos):
             self.position = new_pos
-            self.battery -= self.battery_cost
+            self.battery -= effective_cost
             self.status = "Moving 3D"
             return True
         return False
