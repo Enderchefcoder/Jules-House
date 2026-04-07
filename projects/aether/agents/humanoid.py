@@ -11,10 +11,14 @@ try:
     from chronos.market import Market
     from feel_ai.multimodal_encoder import MultimodalEncoder
     from veritas.integrity import IntegrityManager
+    from aegis.firewall import SwarmFirewall
+    from vita.health import HealthMonitor
 except ImportError:
     Market = None
     MultimodalEncoder = None
     IntegrityManager = None
+    SwarmFirewall = None
+    HealthMonitor = None
 
 class SensorySystem:
     """An integrated sensory system that captures and signs agent observations."""
@@ -49,7 +53,7 @@ class HumanoidAgent:
         self.battery = 100
         self.status = "Idle"
         self.is_3d = hasattr(world, 'depth')
-        self.brain = RobotBrain(input_size=6 if self.is_3d else 4)
+        self.brain = RobotBrain(input_size=8 if self.is_3d else 6)
         self.role = role
 
         # Specialized attributes based on role
@@ -72,6 +76,8 @@ class HumanoidAgent:
         self.task_manager = None
         self.shared_resource_locations = {} # {resource_type: [pos1, pos2]}
         self.sensory_system = SensorySystem(self.name)
+        self.health_monitor = HealthMonitor(self.name) if HealthMonitor else None
+        self.firewall = SwarmFirewall() if SwarmFirewall else None
 
     def broadcast_emergency(self, level, message):
         """Broadcasts an emergency message to the swarm."""
@@ -94,6 +100,8 @@ class HumanoidAgent:
             self.position = new_pos
             self.battery -= self.battery_cost
             self.status = "Moving"
+            if self.health_monitor:
+                self.health_monitor.step(movement_type="Standard")
             return True
         return False
 
@@ -114,6 +122,8 @@ class HumanoidAgent:
             self.position = new_pos
             self.battery -= effective_cost
             self.status = "Moving 3D"
+            if self.health_monitor:
+                self.health_monitor.step(movement_type="Heavy" if self.role == "Titan" else "Standard")
             return True
         return False
 
@@ -184,6 +194,10 @@ class HumanoidAgent:
         messages = self.message_bus.get_messages(type="resource_discovery")
         for m in messages:
             if m["sender"] != self.name:
+                # AEGIS Firewall Check
+                if self.firewall and not self.firewall.validate_message(m["sender"], m["content"], "resource_discovery"):
+                    continue
+
                 res_type, pos = m["content"]
                 if res_type not in self.shared_resource_locations:
                     self.shared_resource_locations[res_type] = []
@@ -198,6 +212,21 @@ class HumanoidAgent:
 
         # 1. Check current tile for collection or interaction
         current_item = self.world.get_item(self.position)
+
+        # Maintenance Check (Project VITA)
+        if current_item == "outpost_beacon" or current_item == "market_hub":
+             # Implicitly check for repair bay or simulated repair station
+             # Simplified: repair if health < 80%
+             if self.health_monitor and self.health_monitor.get_overall_health() < 80:
+                  # Check for repair station (could be a separate class, using simplified for now)
+                  # If we have metal and balance, repair
+                  if self.inventory.get("Metal", 0) >= 5 and self.balance >= 100:
+                      self.inventory["Metal"] -= 5
+                      self.balance -= 100
+                      self.health_monitor.perform_repair("Full")
+                      print(f"[{self.name}] Performed self-maintenance. Health restored.")
+                      self.status = "Maintenance Complete"
+                      return
 
         if current_item in ["Metal", "Data"]:
             if sum(self.inventory.values()) < self.inventory_capacity:
@@ -242,15 +271,29 @@ class HumanoidAgent:
         profit_need = sum(self.inventory.values()) / self.inventory_capacity
         task_need = 0.5 # Baseline interest in tasks
 
+        # Physical maintenance need (VITA)
+        health_need = (100 - self.health_monitor.get_overall_health()) / 100.0 if self.health_monitor else 0.0
+
         # Use Brain to weight these (Simulated for now, would be trained)
         # Brain input: [survival_need, profit_need, task_need, role_id, balance_scaled, 0]
         role_map = {"Scout": 0.1, "Gatherer": 0.5, "Trader": 0.9, "Generalist": 0.0}
 
-        # Ensure input size matches brain's input_size (which is 6 for 3D, 4 for 2D)
+        # Ensure input size matches brain's input_size (which is 8 for 3D, 6 for 2D)
+        # Note: Need to update RobotBrain's input size or adjust here.
+        # Let's update RobotBrain to take health_need and balance.
+
         if self.is_3d:
-            brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0), self.balance/1000.0, 0.0])
+            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_map.get(self.role, 0.0), self.balance/1000.0, 0.0, 0.0])
         else:
-            brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0)])
+            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_map.get(self.role, 0.0), self.balance/1000.0])
+
+        # If brain hasn't been updated yet, we need to handle size mismatch
+        if self.brain.fc1.in_features != brain_input.shape[0]:
+             # Fallback to older logic if brain not updated
+             if self.is_3d:
+                 brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0), self.balance/1000.0, 0.0])
+             else:
+                 brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0)])
 
         decision_weights = self.brain.forward(brain_input)
         # Outputs: [weight_recharge, weight_market, weight_task, weight_explore]
@@ -339,7 +382,8 @@ class HumanoidAgent:
         self.status = "Idling"
 
     def __repr__(self):
-        return f"HumanoidAgent({self.name}, {self.position}, Bat: {self.battery}%, Bal: {self.balance:.2f})"
+        health_str = f", Health: {self.health_monitor.get_overall_health():.1f}%" if self.health_monitor else ""
+        return f"HumanoidAgent({self.name}, {self.position}, Bat: {self.battery}%, Bal: {self.balance:.2f}{health_str})"
 
 if __name__ == "__main__":
     print("HumanoidAgent module loaded.")

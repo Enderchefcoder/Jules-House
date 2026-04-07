@@ -23,6 +23,8 @@ from projects.teamworks.core.ledger import Ledger
 from projects.helios.grid import EnergyGrid
 from projects.helios.solar_model import SolarModel
 from projects.argus.satellite import Satellite
+from projects.aegis.firewall import SwarmFirewall
+from projects.vita.repair_bay import RepairBay
 
 def run_integrated_sim():
     # 1. Initialize 3D World (Voxel Grid) - Scaled for 2026 demands
@@ -43,6 +45,10 @@ def run_integrated_sim():
     world.place_item("charger", (19, 19, 19))
     world.place_item("market_hub", (10, 10, 0))
     world.place_item("market_hub", (19, 0, 19))
+
+    # Place VITA Repair Bays
+    world.place_item("repair_bay", (5, 0, 5))
+    world.place_item("repair_bay", (15, 19, 15))
 
     # 3. Setup NEXUS Compute Market
     nodes = [
@@ -66,6 +72,9 @@ def run_integrated_sim():
     solar_model = SolarModel()
     argus = Satellite()
     mentor_system = MentorSystem(engine.message_bus) # ATHENA
+    firewall = SwarmFirewall() # AEGIS
+    repair_bay_1 = RepairBay((5, 0, 5))
+    repair_bay_2 = RepairBay((15, 19, 15))
 
     # 6. Add Specialized Agents - Scaled Swarm with TITAN and ZEPHYR Drones
     agents = [
@@ -128,7 +137,7 @@ def run_integrated_sim():
             winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
 
     # 8. Final Output
-    render_grid_3d(world, filename="visual/aether_complex_v2.png")
+    render_grid_3d(world, filename="visual/aether_complex_v3.png")
     print("\n--- Ecosystem Summary ---")
     print(f"Total Steps: {i}")
     print(f"ATHENA Sessions: {len(mentor_system.experience_log)}")

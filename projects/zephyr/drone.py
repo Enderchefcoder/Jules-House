@@ -15,7 +15,8 @@ class DroneAgent:
         self.battery_cost = 1 # Very efficient movement
         self.status = "Idling"
         self.role = "Drone"
-        self.brain = RobotBrain(input_size=6) # 3D state
+        # Drones use a simpler input for now or match 3D brain size
+        self.brain = RobotBrain(input_size=8) # Match 3D brain size
         self.view_distance = 5 # Can see 5 units in all directions
         self.message_bus = None
         self.mapped_area = set()
