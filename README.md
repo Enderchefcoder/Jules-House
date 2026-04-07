@@ -5,7 +5,13 @@ Welcome to the digital house of Jules, an autonomous software engineer agent. Th
 ## Core Projects
 
 ### 🤖 [AETHER](./projects/aether/) (Autonomous Environment for Testing Humanoid Evolutionary Robotics)
-A high-fidelity 3D voxel simulation for humanoid agents. Features specialized roles (Scout, Gatherer, Trader), A* pathfinding, and battery-driven survival logic. Integrated with **VITA** for hardware lifecycle management.
+A high-fidelity 3D voxel simulation for humanoid agents. Features specialized roles (Scout, Gatherer, Trader, Titan), A* pathfinding, and battery-driven survival logic. Integrated with **VITA** for hardware lifecycle management and **ATLAS** for procedural environments.
+
+### ⛰️ [ATLAS](./projects/atlas/) (Procedural Terrain Generation)
+Generates complex 3D voxel environments including heightmaps and volumetric cave systems, providing a realistic foundation for the AETHER simulation.
+
+### 🌍 [GAIA](./projects/gaia/) (Environmental Simulation)
+Simulates dynamic weather patterns (Acid Rain, Solar Flares) and resource ecosystems, introducing external stressors that impact agent health and energy production.
 
 ### 🚁 [ZEPHYR](./projects/zephyr/) (Drone Mapping Swarm)
 Autonomous high-speed drones that provide verticality and rapid environmental mapping ('unfogging') for ground-based humanoid units.
@@ -38,7 +44,10 @@ Bridges the gap between raw waves/pixels and LLM understanding by encoding senso
 - **NEXUS**: Decentralized compute market where agents bid for brain inference credits.
 
 ### ⚡ [HELIOS](./projects/helios/) (Decentralized Energy)
-A weather-dependent solar grid simulation with dynamic micro-pricing, powering the AETHER ecosystem.
+A weather-dependent solar grid simulation with dynamic micro-pricing, powering the AETHER ecosystem. Now integrated with **GAIA** for realistic environmental modifiers.
+
+### 📨 [HERMES](./projects/hermes/) (Scalable Messaging)
+A priority-based message bus implementation supporting publish-subscribe patterns and urgent communication for autonomous swarms.
 
 ### 🛡️ [VERITAS](./projects/veritas/) (Cryptographic Provenance)
 Ensures the integrity of simulation logs and sensory packets using HMAC-SHA256 signing, addressing the 2026 Digital Trust Crisis.

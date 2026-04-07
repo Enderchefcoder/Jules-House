@@ -17,20 +17,35 @@ class HumanoidTitan(HumanoidAgent):
         """Constructs a new charger/market hub or high-efficiency Beacon."""
         if self.inventory.get("Metal", 0) >= self.build_materials["Metal"]:
             self.inventory["Metal"] -= self.build_materials["Metal"]
-            # Decide what to build: New Beacon type or standard hub
-            choice = random.choice(["charger", "market_hub", "outpost_beacon"])
+            # Decide what to build
+            choice = random.choice(["charger", "market_hub", "outpost_beacon", "research_lab", "relay_station"])
             self.world.place_item(choice, self.position)
 
-            if choice == "outpost_beacon":
-                print(f"[TITAN] {self.name} constructed a HIGH-EFFICIENCY BEACON at {self.position}!")
-            else:
-                print(f"[TITAN] {self.name} constructed a {choice} at {self.position}!")
-
+            print(f"[TITAN] {self.name} constructed a {choice.upper()} at {self.position}!")
             self.status = f"Built {choice}"
             return True
         else:
             self.status = "Insufficient Materials for Outpost"
             return False
+
+    def build_research_lab(self):
+        """Dedicated method for research lab (costs more Data)."""
+        if self.inventory.get("Metal", 0) >= 10 and self.inventory.get("Data", 0) >= 10:
+            self.inventory["Metal"] -= 10
+            self.inventory["Data"] -= 10
+            self.world.place_item("research_lab", self.position)
+            print(f"[TITAN] {self.name} established a RESEARCH LAB at {self.position}!")
+            return True
+        return False
+
+    def build_relay_station(self):
+        """Dedicated method for relay station (costs more Metal)."""
+        if self.inventory.get("Metal", 0) >= 20:
+            self.inventory["Metal"] -= 20
+            self.world.place_item("relay_station", self.position)
+            print(f"[TITAN] {self.name} deployed a RELAY STATION at {self.position}!")
+            return True
+        return False
 
     def perform_task(self):
         """Extended task performance: Titans prioritize building if they have metal."""

@@ -25,10 +25,12 @@ from projects.helios.solar_model import SolarModel
 from projects.argus.satellite import Satellite
 from projects.aegis.firewall import SwarmFirewall
 from projects.vita.repair_bay import RepairBay
+from projects.gaia.weather import WeatherSystem
+from projects.gaia.ecosystem import EcosystemManager
 
 def run_integrated_sim():
     # 1. Initialize 3D World (Voxel Grid) - Scaled for 2026 demands
-    world = World3D(size=(20, 20, 20))
+    world = World3D(size=(20, 20, 20), use_atlas=True)
 
     # 2. Setup Resources and Hubs - Increased density for longer sim
     resource_positions = [
@@ -71,6 +73,8 @@ def run_integrated_sim():
     energy_grid = EnergyGrid()
     solar_model = SolarModel()
     argus = Satellite()
+    gaia_weather = WeatherSystem()
+    gaia_ecosystem = EcosystemManager(world)
     mentor_system = MentorSystem(engine.message_bus) # ATHENA
     firewall = SwarmFirewall() # AEGIS
     repair_bay_1 = RepairBay((5, 0, 5))
@@ -111,9 +115,13 @@ def run_integrated_sim():
             print(f"[ARGUS] ALERT: {event['name']} - {event['desc']}")
             governor.reconcile_shocks(argus.current_vibe)
 
+        # Update GAIA Environment
+        gaia_weather.step()
+        gaia_weather.apply_effects(agents)
+        gaia_ecosystem.step()
+
         # Update HELIOS Energy Grid
-        solar_model.update_weather()
-        prod = solar_model.get_production() * argus.get_solar_modifier()
+        prod = solar_model.get_production(gaia_weather=gaia_weather) * argus.get_solar_modifier()
         energy_grid.update_price(prod)
 
         # Periodically simulate sensory capture (Feel AI + VERITAS)
@@ -137,7 +145,7 @@ def run_integrated_sim():
             winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
 
     # 8. Final Output
-    render_grid_3d(world, filename="visual/aether_complex_v3.png")
+    render_grid_3d(world, filename="visual/aether_complex_v4.png")
     print("\n--- Ecosystem Summary ---")
     print(f"Total Steps: {i}")
     print(f"ATHENA Sessions: {len(mentor_system.experience_log)}")

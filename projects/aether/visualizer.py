@@ -77,7 +77,11 @@ def render_grid_3d(world, filename="visual/aether_3d_v1.png"):
         'charger': ('green', 'o', 'Charger'),
         'Metal': ('gray', 'h', 'Metal Resource'),
         'Data': ('cyan', 'D', 'Data Resource'),
-        'market_hub': ('orange', 'P', 'Market Hub')
+        'market_hub': ('orange', 'P', 'Market Hub'),
+        'outpost_beacon': ('lime', '*', 'Outpost Beacon'),
+        'research_lab': ('purple', 's', 'Research Lab'),
+        'relay_station': ('yellow', 'p', 'Relay Station'),
+        'repair_bay': ('red', '+', 'Repair Bay')
     }
 
     for itype, positions in items_by_type.items():
