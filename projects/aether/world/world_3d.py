@@ -1,6 +1,6 @@
 class World3D:
     """A 3D voxel grid environment for AETHER."""
-    def __init__(self, size=(10, 10, 10)):
+    def __init__(self, size=(10, 10, 10), use_atlas=False):
         self.width, self.height, self.depth = size
         # agents is a dict: (x,y,z) -> agent
         self.agents = {}
@@ -8,6 +8,15 @@ class World3D:
         self.obstacles = set()
         # items is a dict: (x,y,z) -> item_type
         self.items = {}
+
+        if use_atlas:
+            try:
+                from projects.atlas.generator import TerrainGenerator
+                gen = TerrainGenerator(size=size)
+                self.obstacles = gen.get_world_obstacles()
+                print(f"[World3D] Initialized with ATLAS Procedural Terrain ({len(self.obstacles)} voxels).")
+            except ImportError:
+                print("[World3D] ATLAS generator not found. Defaulting to empty world.")
 
     def is_occupied(self, pos):
         x, y, z = pos

@@ -82,7 +82,11 @@ class HumanoidAgent:
     def broadcast_emergency(self, level, message):
         """Broadcasts an emergency message to the swarm."""
         if self.message_bus:
-            self.message_bus.post(self.name, f"[{level}] {message}", type="emergency")
+            # Check if using HERMES (PriorityMessageBus)
+            if hasattr(self.message_bus, 'priority_levels'):
+                 self.message_bus.post(self.name, f"[{level}] {message}", type="emergency", priority="Emergency")
+            else:
+                 self.message_bus.post(self.name, f"[{level}] {message}", type="emergency")
             print(f"{self.name} BROADCAST EMERGENCY: {message}")
 
     def move(self, dx, dy):
@@ -236,7 +240,11 @@ class HumanoidAgent:
 
                 # Swarm intelligence: Broadcast discovery
                 if self.message_bus:
-                    self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery")
+                    priority = "High" if self.role == "Scout" else "Normal"
+                    if hasattr(self.message_bus, 'priority_levels'):
+                         self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery", priority=priority)
+                    else:
+                         self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery")
                     print(f"{self.name} broadcasting discovery: {current_item} at {self.position}")
 
                 print(f"{self.name} collected {current_item}. Inventory: {self.inventory}")

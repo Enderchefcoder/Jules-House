@@ -9,49 +9,13 @@ try:
     from aether.core.hazards import HazardManager
     from teamworks.core.task_manager import TaskManager
     from teamworks.core.heartbeat import HeartbeatManager
+    from projects.hermes.bus import PriorityMessageBus
 except ImportError:
     Market = None
     HazardManager = None
     TaskManager = None
     HeartbeatManager = None
-
-class MessageBus:
-    """A simple message bus for agent communication with collective memory."""
-    def __init__(self):
-        self.messages = []
-        self.collective_memory = {} # {resource_type: [pos1, pos2, ...]}
-
-    def post(self, sender, content, type="info"):
-        self.messages.append({
-            "sender": sender,
-            "content": content,
-            "type": type,
-            "step": None # To be filled by engine
-        })
-        # Auto-update collective memory for resource discoveries
-        if type == "resource_discovery":
-            res_type, pos = content
-            if res_type not in self.collective_memory:
-                self.collective_memory[res_type] = []
-            if pos not in self.collective_memory[res_type]:
-                self.collective_memory[res_type].append(pos)
-
-    def query_memory(self, resource_type):
-        """Returns known locations for a resource type."""
-        return self.collective_memory.get(resource_type, [])
-
-    def remove_from_memory(self, resource_type, pos):
-        """Removes a location from collective memory (e.g., if resource is depleted)."""
-        if resource_type in self.collective_memory and pos in self.collective_memory[resource_type]:
-            self.collective_memory[resource_type].remove(pos)
-
-    def get_messages(self, type=None):
-        if type:
-            return [m for m in self.messages if m["type"] == type]
-        return self.messages
-
-    def clear_old_messages(self, current_step, max_age=5):
-        self.messages = [m for m in self.messages if m["step"] is not None and current_step - m["step"] <= max_age]
+    PriorityMessageBus = None
 
 class SimulationEngine:
     """The central engine that manages the AETHER simulation, now with a Market and MessageBus."""
@@ -63,7 +27,7 @@ class SimulationEngine:
         self.current_step = 0
         self.is_running = False
         self.market = Market() if Market else None
-        self.message_bus = MessageBus()
+        self.message_bus = PriorityMessageBus() if PriorityMessageBus else None
         self.hazard_manager = HazardManager(world) if HazardManager else None
         self.task_manager = TaskManager() if TaskManager else None
         self.heartbeat_manager = HeartbeatManager(task_manager=self.task_manager) if HeartbeatManager else None
@@ -93,11 +57,16 @@ class SimulationEngine:
             self.market.fluctuate()
             print(f"Market Prices: {self.market.resources}")
 
-        # Update message step and clear old ones
-        for m in self.message_bus.messages:
-            if m["step"] is None:
-                m["step"] = self.current_step
-        self.message_bus.clear_old_messages(self.current_step)
+        # Update message bus (Encapsulated)
+        if self.message_bus:
+            if hasattr(self.message_bus, 'step'):
+                self.message_bus.step(self.current_step)
+            elif hasattr(self.message_bus, 'clear_old_messages'):
+                # Fallback for old message bus
+                 for m in getattr(self.message_bus, 'messages', []):
+                    if m["step"] is None:
+                        m["step"] = self.current_step
+                 self.message_bus.clear_old_messages(self.current_step)
 
         # Inject message bus and pulse heartbeat
         for agent in self.agents:
