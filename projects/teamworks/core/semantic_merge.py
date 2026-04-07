@@ -24,14 +24,16 @@ class ConflictMerger:
             return agents[0]
 
         # Criteria 1: Role Priority
-        # Criteria 2: Battery Urgency (lower battery = more urgent if it's a critical task)
-        # Criteria 3: Economic Status (lower balance = more need for the resource)
+        # Criteria 2: Physical Health (VITA) - healthy agents preferred for tasks
+        # Criteria 3: Battery Urgency (lower battery = more urgent if it's a critical task)
+        # Criteria 4: Economic Status (lower balance = more need for the resource)
 
         def score_agent(a):
             role_score = self.priority_map.get(a.role, 0) * 10
+            health_score = a.health_monitor.get_overall_health() / 10.0 if hasattr(a, 'health_monitor') else 5.0
             battery_score = (100 - a.battery) / 20.0
             balance_score = (1000 - a.balance) / 100.0 if hasattr(a, 'balance') else 0
-            return role_score + battery_score + balance_score
+            return role_score + health_score + battery_score + balance_score
 
         # Sort agents by score
         agents.sort(key=score_agent, reverse=True)

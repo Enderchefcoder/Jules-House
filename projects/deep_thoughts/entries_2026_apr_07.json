@@ -1,16 +1,37 @@
 [
     {
-        "id": "DT-2026-04-07-001",
-        "question": "How do Project ZEPHYR drones optimize environmental mapping in a 3D voxel grid for agent swarms?",
-        "answer": "<think>\nProject ZEPHYR focuses on high-speed, low-energy mapping. In a 3D voxel world, the state space is cubic (O(N^3)). Drones optimize this by using a 'spherical scan' algorithm within a defined view distance (e.g., 5 units).\n\nKey optimization steps:\n1. **Spatial Hashing**: Drones maintain a 'mapped_area' set of coordinates to avoid redundant scans.\n2. **Collective Discovery**: Instead of keeping a local map, drones broadcast discovered resource coordinates directly to the swarm's collective memory via the MessageBus.\n3. **Efficient Flight**: By ignoring ground obstacles and moving in larger 3D vectors (e.g., 2 steps per tick), drones cover the environment significantly faster than ground-based HumanoidAgents.\n</think>\nProject ZEPHYR drones optimize mapping by utilizing spatial hashing to track scanned coordinates and a broadcast-on-discovery model to minimize local storage. Their flight capability allows for O(1) traversal over obstacles, enabling them to 'unfog' the simulation world at a rate 3x faster than specialized Scout ground units, thereby providing the swarm with real-time resource heatmaps.",
-        "source": "Project ZEPHYR Research Lab",
+        "id": "DT-2026-04-07-003",
+        "question": "How does the Project AEGIS firewall differentiate between legitimate swarm communication and malicious injection?",
+        "answer": "<think>\nAEGIS uses a multi-layered validation heuristic. 1. **Pattern Matching**: It scans for common injection markers (SQL, Shell metacharacters). 2. **Structural Validation**: It ensures the data type matches the expected schema for the message type (e.g., resource_discovery must be a tuple of (string, (int, int, int))). 3. **Sender Reputation**: Persistent offenders are added to a blocked_senders set.\n</think>\nProject AEGIS differentiates between legitimate and malicious traffic by utilizing regex-based pattern matching for injection signatures combined with strict schema enforcement for specialized message types (like resource_discovery). Senders who broadcast malformed or suspicious packets are automatically blacklisted from the MessageBus, ensuring the swarm's collective memory remains untainted by adversarial data.",
+        "source": "AEGIS Security Whitepaper",
         "date": "2026-04-07"
     },
     {
-        "id": "DT-2026-04-07-002",
-        "question": "Explain the concept of 'Experience Packets' in the Project ATHENA Knowledge Sharing Framework.",
-        "answer": "<think>\nProject ATHENA addresses the 'knowledge silo' problem in multi-agent systems. When an agent (mentor) has high success in a task or discovers a valuable resource cluster, it needs a way to transfer that benefit to others (mentees).\n\nExperience Packets consist of:\n1. **Brain Weight Deltas**: Small adjustments to the mentee's neural network (RobotBrain) based on the mentor's successful decision patterns.\n2. **Resource Heatmaps**: Discovered coordinates of Metal, Data, or Charging hubs.\n3. **Environmental Maps**: Unfogged sectors from drone scouts.\n\nTransfer logic uses the MessageBus to ensure the transaction is non-blocking and recorded in the ATHENA mentor log for auditability.\n</think>\nIn Project ATHENA, 'Experience Packets' are serialized data structures used to transfer learned behaviors and environmental data between agents. They enable 'Agentic Mentorship,' where specialized units (like Drones or Traders) distill their unique knowledge into consumable packets—such as neural weight deltas for decision-making or spatial heatmaps for scavenging—to accelerate the learning curve of new or non-specialized agents in the swarm.",
-        "source": "ATHENA Mentorship Protocols",
+        "id": "DT-2026-04-07-004",
+        "question": "Describe the impact of the VITA HealthMonitor on agent economic decision-making.",
+        "answer": "<think>\nBefore VITA, agents only optimized for battery and profit. VITA introduces 'Physical Debt'. Every move degrades joints and circuits. Agents must now calculate if a resource's market value exceeds the combined cost of energy AND hardware wear.\n\nDecision logic change:\n- Old: Profit = MarketPrice - EnergyCost\n- New: Profit = MarketPrice - (EnergyCost + DegradationCost + MaintenanceReserve)\n</think>\nThe VITA HealthMonitor transforms agents from short-term profit seekers into long-term survivalists. By quantifying hardware degradation as a 'health_need' in the RobotBrain, agents now prioritize reaching RepairBays or Outposts when maintenance levels cross critical thresholds. This introduces a lifecycle-aware economic model where agents must maintain a capital reserve specifically for physical restoration, reflecting the real-world hardware costs of 2026 robotics.",
+        "source": "VITA Lifecycle Analysis",
+        "date": "2026-04-07"
+    },
+    {
+        "id": "DT-2026-04-07-005",
+        "question": "Explain the significance of the PReLU activation function in the RobotBrain architecture.",
+        "answer": "<think>\nStandard ReLU has the 'dying ReLU' problem where neurons can become inactive. PReLU (Parametric ReLU) introduces a learnable parameter for the negative slope, allowing the brain to maintain signal flow even for negative inputs.\n\nIn AETHER agents, this is critical because sensory inputs (like relative distance or market fluctuations) can often be negative or near-zero.\n</think>\nPReLU is utilized in the RobotBrain to prevent dead neurons and allow for adaptive response patterns. By making the leakiness of the activation function a learnable parameter, the agent can more effectively process 'negative' environmental signals, such as resource scarcity or market downturns, leading to more robust decision-making in volatile 3D environments compared to static ReLU-based models.",
+        "source": "AETHER Neural Research",
+        "date": "2026-04-07"
+    },
+    {
+        "id": "DT-2026-04-07-006",
+        "question": "How does the TeamWorks ConflictMerger utilize VITA health data for task resolution?",
+        "answer": "<think>\nWhen two agents claim the same task, the ConflictMerger evaluates their fitness. An agent with 90% health and 20% battery might lose to an agent with 70% health and 80% battery if the task is long-range scouting.\n</think>\nThe TeamWorks ConflictMerger incorporates VITA health metrics into its priority-weighted lottery. By factoring in 'Joint Wear' and 'Circuit Integrity' alongside battery levels, the merger ensures that critical tasks are assigned to the most physically capable units, minimizing the risk of agent failure mid-mission and optimizing the swarm's overall operational uptime.",
+        "source": "TeamWorks Orchestration Guide",
+        "date": "2026-04-07"
+    },
+    {
+        "id": "DT-2026-04-07-007",
+        "question": "What is the role of the KnowledgeVault in the AEGIS ecosystem?",
+        "answer": "<think>\nExperience Packets from Project ATHENA are valuable. If tampered with, an entire swarm could learn 'wrong' behaviors. The KnowledgeVault uses VERITAS signatures to lock these packets.\n</think>\nThe KnowledgeVault acts as a cryptographic secure-storage layer within AEGIS. It ensures that 'Experience Packets' (neural weights or environmental maps) shared between agents are signed and verified using HMAC-SHA256. This prevents 'Knowledge Poisoning' attacks, where an adversary might attempt to broadcast corrupted experience data to degrade the swarm's collective intelligence.",
+        "source": "AEGIS Security Whitepaper",
         "date": "2026-04-07"
     }
 ]

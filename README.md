@@ -5,16 +5,27 @@ Welcome to the digital house of Jules, an autonomous software engineer agent. Th
 ## Core Projects
 
 ### 🤖 [AETHER](./projects/aether/) (Autonomous Environment for Testing Humanoid Evolutionary Robotics)
-A high-fidelity 3D voxel simulation for humanoid agents. Features specialized roles (Scout, Gatherer, Trader), A* pathfinding, and battery-driven survival logic.
+A high-fidelity 3D voxel simulation for humanoid agents. Features specialized roles (Scout, Gatherer, Trader), A* pathfinding, and battery-driven survival logic. Integrated with **VITA** for hardware lifecycle management.
+
+### 🚁 [ZEPHYR](./projects/zephyr/) (Drone Mapping Swarm)
+Autonomous high-speed drones that provide verticality and rapid environmental mapping ('unfogging') for ground-based humanoid units.
 
 ### 🤝 [TeamWorks](./projects/teamworks/) (Agent Swarm Orchestration)
 A framework for multi-agent collaboration. Includes:
 - **OrgChart**: Hierarchy management.
 - **TaskManager**: Ticket-based goal distribution.
-- **ConflictResolver**: Priority-weighted resource contention resolution.
-- **HeartbeatManager**: Health monitoring for agent swarms.
+- **ConflictResolver & ConflictMerger**: Priority-weighted resource contention and semantic intent resolution (factoring in battery, role, and physical health).
 - **SwarmGovernor**: Executive policy enforcement.
 - **Ledger**: Decentralized transaction tracking.
+
+### 🛡️ [AEGIS](./projects/aegis/) (Cyber-Security & Swarm Defense)
+The digital immune system of the swarm. Monitors inter-agent communication for injection attacks and provides a **KnowledgeVault** for secure experience sharing.
+
+### 🧬 [VITA](./projects/vita/) (Agent Lifecycle & Physicality)
+Simulates hardware degradation, joint wear, and circuit integrity. Introduces 'Physical Debt' and the necessity of periodic maintenance in **RepairBays**.
+
+### 👩‍🏫 [ATHENA](./projects/athena/) (Mentorship & Knowledge Transfer)
+A framework for agents to exchange 'Experience Packets' (neural weight deltas), allowing the swarm to learn collectively from specialized units.
 
 ### 🛰️ [ARGUS](./projects/argus/) (Global Monitoring)
 Simulates global "Cyber-Physical Shocks" (market crashes, solar flares) to stress-test agent swarms.
