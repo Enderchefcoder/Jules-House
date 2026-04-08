@@ -36,6 +36,18 @@ A framework for agents to exchange 'Experience Packets' (neural weight deltas), 
 ### 🛰️ [ARGUS](./projects/argus/) (Global Monitoring)
 Simulates global "Cyber-Physical Shocks" (market crashes, solar flares) to stress-test agent swarms.
 
+### 🏭 [VULCAN](./projects/vulcan/) (Advanced Manufacturing)
+Simulates industrial refinement, allowing agents to process raw Metal and Energy into high-value **Alloy**, enabling advanced infrastructure construction.
+
+### 🗼 [ORION](./projects/orion/) (Communication Infrastructure)
+Implements **RelayBeacon** units that boost the effective communication range of the HERMES PriorityMessageBus, allowing swarms to stay coordinated across massive 3D environments.
+
+### 🐍 [NEMESIS](./projects/nemesis/) (Adversarial Simulation)
+Introduces **Rogue Agents** that disrupt the swarm via data-injection attacks and economic drain, testing the resilience of the AEGIS firewall and SwarmGovernor.
+
+### 🧠 [HYDRA](./projects/hydra/) (Distributed Brain Inference)
+A compute offloading framework that allows agents to outsource heavy `RobotBrain` inference tasks to high-compute NEXUS nodes, preserving local battery for physical movement.
+
 ### 🎨 [Feel For AI](./projects/feel_ai/) (Multimodal Sensory Tokens)
 Bridges the gap between raw waves/pixels and LLM understanding by encoding sensory data into "vibe" tokens.
 

@@ -79,6 +79,10 @@ class HumanoidAgent:
         self.health_monitor = HealthMonitor(self.name) if HealthMonitor else None
         self.firewall = SwarmFirewall() if SwarmFirewall else None
 
+        # Path Caching (Optimization)
+        self.current_path = []
+        self.current_target = None
+
     def broadcast_emergency(self, level, message):
         """Broadcasts an emergency message to the swarm."""
         if self.message_bus:
@@ -287,21 +291,26 @@ class HumanoidAgent:
         role_map = {"Scout": 0.1, "Gatherer": 0.5, "Trader": 0.9, "Generalist": 0.0}
 
         # Ensure input size matches brain's input_size (which is 8 for 3D, 6 for 2D)
-        # Note: Need to update RobotBrain's input size or adjust here.
-        # Let's update RobotBrain to take health_need and balance.
+        # 2D Input: [survival, profit, task, health, role, balance]
+        # 3D Input: [survival, profit, task, health, role, balance, 0, 0] (Extended for future depth/tilt sensors)
+
+        role_scaled = role_map.get(self.role, 0.0)
+        balance_scaled = min(1.0, self.balance / 2000.0) # Scaled to [0, 1] relative to 2000 credits
 
         if self.is_3d:
-            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_map.get(self.role, 0.0), self.balance/1000.0, 0.0, 0.0])
+            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_scaled, balance_scaled, 0.0, 0.0])
         else:
-            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_map.get(self.role, 0.0), self.balance/1000.0])
+            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_scaled, balance_scaled])
 
-        # If brain hasn't been updated yet, we need to handle size mismatch
+        # Verification of tensor size against brain input
         if self.brain.fc1.in_features != brain_input.shape[0]:
-             # Fallback to older logic if brain not updated
-             if self.is_3d:
-                 brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0), self.balance/1000.0, 0.0])
+             # Dynamic adjustment if model was loaded with different size
+             print(f"[{self.name}] WARNING: Brain input mismatch. Expected {self.brain.fc1.in_features}, got {brain_input.shape[0]}. Padding/Trimming.")
+             if brain_input.shape[0] > self.brain.fc1.in_features:
+                 brain_input = brain_input[:self.brain.fc1.in_features]
              else:
-                 brain_input = torch.tensor([survival_need, profit_need, task_need, role_map.get(self.role, 0.0)])
+                 padding = torch.zeros(self.brain.fc1.in_features - brain_input.shape[0])
+                 brain_input = torch.cat([brain_input, padding])
 
         decision_weights = self.brain.forward(brain_input)
         # Outputs: [weight_recharge, weight_market, weight_task, weight_explore]
@@ -363,20 +372,42 @@ class HumanoidAgent:
             if self.position == target:
                 # Already there, status update
                 self.status = f"At {self.world.get_item(target)}"
+                self.current_path = []
+                self.current_target = None
                 return
 
-            path = a_star(self.world, self.position, target)
-            if path and len(path) > 1:
-                next_step = path[1]
-                dx = next_step[0] - self.position[0]
-                dy = next_step[1] - self.position[1]
-                if self.is_3d:
-                    dz = next_step[2] - self.position[2]
-                    self.move_3d(dx, dy, dz)
-                else:
-                    self.move(dx, dy)
-                self.status = f"Heading to {target}"
-                return
+            # Path Caching Logic
+            if target != self.current_target or not self.current_path:
+                self.current_target = target
+                self.current_path = a_star(self.world, self.position, target)
+                # Remove current position from path
+                if self.current_path and self.current_path[0] == self.position:
+                    self.current_path.pop(0)
+
+            if self.current_path:
+                next_step = self.current_path.pop(0)
+                # Verify next_step is adjacent (safety check)
+                dist = sum(abs(a - b) for a, b in zip(self.position, next_step))
+                if dist > 1:
+                    # Path broken or invalid, recalculate
+                    self.current_path = a_star(self.world, self.position, target)
+                    if self.current_path and self.current_path[0] == self.position:
+                        self.current_path.pop(0)
+                    if self.current_path:
+                        next_step = self.current_path.pop(0)
+                    else:
+                        next_step = None
+
+                if next_step:
+                    dx = next_step[0] - self.position[0]
+                    dy = next_step[1] - self.position[1]
+                    if self.is_3d:
+                        dz = next_step[2] - self.position[2]
+                        self.move_3d(dx, dy, dz)
+                    else:
+                        self.move(dx, dy)
+                    self.status = f"Heading to {target}"
+                    return
 
         # 4. Fallback: Random movement
         moves = [(0,1,0), (0,-1,0), (1,0,0), (-1,0,0), (0,0,1), (0,0,-1)] if self.is_3d else [(0,1), (0,-1), (1,0), (-1,0)]
