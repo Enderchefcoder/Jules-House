@@ -57,8 +57,10 @@ def run_integrated_sim():
     world.place_item("repair_bay", (15, 19, 15))
 
     # Place VULCAN Foundries
-    world.place_item("foundry", (10, 0, 10))
-    world.place_item("foundry", (0, 10, 10))
+    foundry_1_pos = (10, 0, 10)
+    foundry_2_pos = (0, 10, 10)
+    world.place_item("foundry", foundry_1_pos)
+    world.place_item("foundry", foundry_2_pos)
 
     # Place ORION Relays
     world.place_item("relay_station", (10, 10, 10))
@@ -93,8 +95,8 @@ def run_integrated_sim():
     repair_bay_2 = RepairBay((15, 19, 15))
 
     # Initialize VULCAN, ORION, HYDRA integration
-    foundry_1 = Foundry((10, 0, 10))
-    foundry_2 = Foundry((0, 10, 10))
+    foundry_1 = Foundry(foundry_1_pos)
+    foundry_2 = Foundry(foundry_2_pos)
     relay_1 = RelayBeacon((10, 10, 10))
     relay_2 = RelayBeacon((5, 15, 10))
     engine.message_bus.add_relay(relay_1)
@@ -102,14 +104,15 @@ def run_integrated_sim():
     brain_distributor = BrainDistributor(compute_market) # HYDRA
 
     # 6. Add Specialized Agents - Scaled Swarm with TITAN, ZEPHYR, and NEMESIS Rogue
+    # Pass brain_distributor to humanoid agents
     agents = [
-        HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout"),
-        HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout"),
-        HumanoidAgent("Gatherer-Beta", world, position=(10, 10, 10), role="Gatherer"),
-        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer"),
-        HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader"),
-        HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader"),
-        HumanoidTitan("Titan-01", world, position=(5, 5, 5)),
+        HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout", brain_distributor=brain_distributor),
+        HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout", brain_distributor=brain_distributor),
+        HumanoidAgent("Gatherer-Beta", world, position=(10, 10, 10), role="Gatherer", brain_distributor=brain_distributor),
+        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer", brain_distributor=brain_distributor),
+        HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader", brain_distributor=brain_distributor),
+        HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader", brain_distributor=brain_distributor),
+        HumanoidTitan("Titan-01", world, position=(5, 5, 5)), # Titan might not need it or handles it differently
         DroneAgent("Zephyr-01", world, position=(10, 10, 19)), # ZEPHYR Drone
         DroneAgent("Zephyr-02", world, position=(5, 5, 15)),
         RogueAgent("NEMESIS-Rogue", world, position=(0, 0, 19)) # NEMESIS Rogue
@@ -146,6 +149,20 @@ def run_integrated_sim():
         prod = solar_model.get_production(gaia_weather=gaia_weather) * argus.get_solar_modifier()
         energy_grid.update_price(prod)
 
+        # VULCAN: Deep Integration - Check for agents at foundries
+        for agent in agents:
+            if hasattr(agent, 'inventory') and agent.inventory.get("Metal", 0) > 0:
+                if agent.position == foundry_1.position:
+                    m = agent.inventory["Metal"]
+                    foundry_1.deposit_resources(metal=m, energy=10) # Simulated energy deposit
+                    agent.inventory["Metal"] = 0
+                    print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 1.")
+                elif agent.position == foundry_2.position:
+                    m = agent.inventory["Metal"]
+                    foundry_2.deposit_resources(metal=m, energy=10)
+                    agent.inventory["Metal"] = 0
+                    print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 2.")
+
         # Periodically simulate sensory capture (Feel AI + VERITAS)
         if i % 10 == 0:
             for agent in [a for a in agents if hasattr(a, 'sensory_system')]:
@@ -171,13 +188,12 @@ def run_integrated_sim():
 
         # VULCAN: Process foundries
         if i % 25 == 0:
-            foundry_1.deposit_resources(metal=10, energy=10)
             foundry_1.process()
-            foundry_2.deposit_resources(metal=5, energy=5)
             foundry_2.process()
 
-        # HYDRA: Distributed Inference requests
+        # HYDRA: Distributed Inference requests (Now mostly handled within HumanoidAgent.perform_task)
         if i % 30 == 0:
+            # Periodic manual test request
             brain_distributor.request_inference("Scout-Alpha", [0]*8)
 
         # Security Check: AEGIS + Governor Integration
