@@ -1,7 +1,9 @@
 import random
+import torch
+import torch.optim as optim
+import torch.nn.functional as F
 from utils.pathfinding import a_star
 from core.brain import RobotBrain
-import torch
 
 # Try to import market from chronos
 try:
@@ -44,9 +46,9 @@ class SensorySystem:
         return packet
 
 class HumanoidAgent:
-    """A humanoid robot agent for the AETHER simulation with economic and swarm capabilities."""
+    """A humanoid robot agent for the AETHER simulation with RL and infrastructure hooks."""
 
-    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None, role="Generalist"):
+    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None, role="Generalist", brain_distributor=None):
         self.name = name
         self.world = world
         self.position = position
@@ -54,6 +56,7 @@ class HumanoidAgent:
         self.status = "Idle"
         self.is_3d = hasattr(world, 'depth')
         self.brain = RobotBrain(input_size=8 if self.is_3d else 6)
+        self.optimizer = optim.Adam(self.brain.parameters(), lr=0.01)
         self.role = role
 
         # Specialized attributes based on role
@@ -74,6 +77,7 @@ class HumanoidAgent:
         self.market = market
         self.message_bus = message_bus
         self.task_manager = None
+        self.brain_distributor = brain_distributor
         self.shared_resource_locations = {} # {resource_type: [pos1, pos2]}
         self.sensory_system = SensorySystem(self.name)
         self.health_monitor = HealthMonitor(self.name) if HealthMonitor else None
@@ -83,12 +87,25 @@ class HumanoidAgent:
         self.current_path = []
         self.current_target = None
 
+    def reward_feedback(self, reward, target_idx):
+        """Perform a single RL step based on a decision reward."""
+        if hasattr(self, 'last_state') and self.last_state is not None:
+             self.optimizer.zero_grad()
+             output = self.brain(self.last_state)
+             # One-hot target
+             target = output.clone().detach()
+             target[target_idx] += reward
+             loss = F.mse_loss(output, target)
+             loss.backward()
+             self.optimizer.step()
+             # print(f"[{self.name}] RL Update: Reward {reward:.1f}, Loss {loss.item():.4f}")
+
     def broadcast_emergency(self, level, message):
         """Broadcasts an emergency message to the swarm."""
         if self.message_bus:
             # Check if using HERMES (PriorityMessageBus)
             if hasattr(self.message_bus, 'priority_levels'):
-                 self.message_bus.post(self.name, f"[{level}] {message}", type="emergency", priority="Emergency")
+                 self.message_bus.post(self.name, f"[{level}] {message}", type="emergency", priority="Emergency", origin_pos=self.position)
             else:
                  self.message_bus.post(self.name, f"[{level}] {message}", type="emergency")
             print(f"{self.name} BROADCAST EMERGENCY: {message}")
@@ -120,7 +137,6 @@ class HumanoidAgent:
         current_item = self.world.get_item(self.position)
         if current_item == "outpost_beacon":
             effective_cost = max(1, self.battery_cost // 2)
-            # print(f"[{self.name}] Beacon Bonus Active: Reduced movement cost to {effective_cost}")
 
         if self.battery < effective_cost:
             print(f"{self.name} battery too low to move!")
@@ -170,7 +186,6 @@ class HumanoidAgent:
         if self.is_3d:
             items_to_check = self.world.items.items()
         else:
-            # For 2D WorldGrid, we need to iterate (less efficient but works for small grids)
             items_to_check = []
             for y in range(self.world.height):
                 for x in range(self.world.width):
@@ -186,20 +201,13 @@ class HumanoidAgent:
                     nearest = pos
         return nearest
 
-    def get_state(self, target):
-        if self.is_3d:
-            return torch.tensor([float(self.position[0]), float(self.position[1]), float(self.position[2]),
-                                float(target[0]), float(target[1]), float(target[2])])
-        else:
-            return torch.tensor([float(self.position[0]), float(self.position[1]),
-                                float(target[0]), float(target[1])])
-
     def process_messages(self):
-        """Checks the message bus for updates from other agents."""
+        """Checks the message bus for updates from other agents with ORION range logic."""
         if not self.message_bus:
             return
 
-        messages = self.message_bus.get_messages(type="resource_discovery")
+        # Use position for range-based filtering if HERMES is present
+        messages = self.message_bus.get_messages(type="resource_discovery", viewer_pos=self.position)
         for m in messages:
             if m["sender"] != self.name:
                 # AEGIS Firewall Check
@@ -211,10 +219,10 @@ class HumanoidAgent:
                     self.shared_resource_locations[res_type] = []
                 if pos not in self.shared_resource_locations[res_type]:
                     self.shared_resource_locations[res_type].append(pos)
-                    print(f"{self.name} received broadcast: {res_type} at {pos}")
+                    # print(f"{self.name} received broadcast: {res_type} at {pos}")
 
     def perform_task(self):
-        """Decides and performs an action based on state, battery, and economy."""
+        """Decides and performs an action based on state, battery, and RL feedback."""
         # 0. Process swarm communication
         self.process_messages()
 
@@ -223,11 +231,7 @@ class HumanoidAgent:
 
         # Maintenance Check (Project VITA)
         if current_item == "outpost_beacon" or current_item == "market_hub":
-             # Implicitly check for repair bay or simulated repair station
-             # Simplified: repair if health < 80%
              if self.health_monitor and self.health_monitor.get_overall_health() < 80:
-                  # Check for repair station (could be a separate class, using simplified for now)
-                  # If we have metal and balance, repair
                   if self.inventory.get("Metal", 0) >= 5 and self.balance >= 100:
                       self.inventory["Metal"] -= 5
                       self.balance -= 100
@@ -242,14 +246,14 @@ class HumanoidAgent:
                 if hasattr(self.world, 'remove_item'):
                     self.world.remove_item(self.position)
 
-                # Swarm intelligence: Broadcast discovery
+                # RL Reward for collection
+                if hasattr(self, 'last_decision_idx'):
+                    self.reward_feedback(1.0, self.last_decision_idx)
+
                 if self.message_bus:
                     priority = "High" if self.role == "Scout" else "Normal"
-                    if hasattr(self.message_bus, 'priority_levels'):
-                         self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery", priority=priority)
-                    else:
-                         self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery")
-                    print(f"{self.name} broadcasting discovery: {current_item} at {self.position}")
+                    self.message_bus.post(self.name, (current_item, self.position), type="resource_discovery", priority=priority, origin_pos=self.position)
+                    # print(f"{self.name} broadcasting discovery: {current_item} at {self.position}")
 
                 print(f"{self.name} collected {current_item}. Inventory: {self.inventory}")
                 self.status = f"Collected {current_item}"
@@ -267,149 +271,107 @@ class HumanoidAgent:
                         self.inventory[res] = 0
                 if total_sale > 0:
                     self.balance += total_sale
+                    # RL Reward for sale
+                    if hasattr(self, 'last_decision_idx'):
+                        self.reward_feedback(2.0, self.last_decision_idx)
                     print(f"{self.name} sold inventory for {total_sale:.2f}. Balance: {self.balance:.2f}")
                     self.status = f"Sold Goods (+{total_sale:.2f})"
                     return
 
         if current_item == "charger" and self.battery < 90:
-            if self.recharge():
-                return
+            if not self.recharge():
+                 # RL Penalty for failure to recharge
+                 if hasattr(self, 'last_decision_idx'):
+                    self.reward_feedback(-0.5, self.last_decision_idx)
+            return
 
-        # 2. Decide Target using RobotBrain for weight-based selection
-        target = None
-
-        # Calculate needs
+        # 2. Decide Target using RobotBrain
         survival_need = (100 - self.battery) / 100.0
         profit_need = sum(self.inventory.values()) / self.inventory_capacity
-        task_need = 0.5 # Baseline interest in tasks
-
-        # Physical maintenance need (VITA)
+        task_need = 0.5
         health_need = (100 - self.health_monitor.get_overall_health()) / 100.0 if self.health_monitor else 0.0
-
-        # Use Brain to weight these (Simulated for now, would be trained)
-        # Brain input: [survival_need, profit_need, task_need, role_id, balance_scaled, 0]
-        role_map = {"Scout": 0.1, "Gatherer": 0.5, "Trader": 0.9, "Generalist": 0.0}
-
-        # Ensure input size matches brain's input_size (which is 8 for 3D, 6 for 2D)
-        # 2D Input: [survival, profit, task, health, role, balance]
-        # 3D Input: [survival, profit, task, health, role, balance, 0, 0] (Extended for future depth/tilt sensors)
-
+        role_map = {"Scout": 0.1, "Gatherer": 0.5, "Trader": 0.9, "Generalist": 0.0, "Titan": 1.0}
         role_scaled = role_map.get(self.role, 0.0)
-        balance_scaled = min(1.0, self.balance / 2000.0) # Scaled to [0, 1] relative to 2000 credits
+        balance_scaled = min(1.0, self.balance / 2000.0)
 
         if self.is_3d:
             brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_scaled, balance_scaled, 0.0, 0.0])
         else:
             brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_scaled, balance_scaled])
 
-        # Verification of tensor size against brain input
-        if self.brain.fc1.in_features != brain_input.shape[0]:
-             # Dynamic adjustment if model was loaded with different size
-             print(f"[{self.name}] WARNING: Brain input mismatch. Expected {self.brain.fc1.in_features}, got {brain_input.shape[0]}. Padding/Trimming.")
-             if brain_input.shape[0] > self.brain.fc1.in_features:
-                 brain_input = brain_input[:self.brain.fc1.in_features]
-             else:
-                 padding = torch.zeros(self.brain.fc1.in_features - brain_input.shape[0])
-                 brain_input = torch.cat([brain_input, padding])
+        self.last_state = brain_input
+
+        # HYDRA Offloading logic: Call remote compute if battery is low
+        if self.battery < 40 and self.brain_distributor:
+            self.brain_distributor.request_inference(self.name, brain_input)
+            # print(f"[{self.name}] HYDRA: Offloaded inference to NEXUS.")
 
         decision_weights = self.brain.forward(brain_input)
-        # Outputs: [weight_recharge, weight_market, weight_task, weight_explore]
+        self.last_decision_idx = torch.argmax(decision_weights).item()
 
-        # Find potential targets
+        # Target Selection logic
         charger_pos = self.find_nearest_item("charger")
         market_pos = self.find_nearest_item("market_hub")
-
-        # Select target based on brain weights
         options = []
         if charger_pos: options.append((decision_weights[0].item(), charger_pos, "Charging"))
         if market_pos: options.append((decision_weights[1].item(), market_pos, "Selling"))
 
-        # Task / Shared Memory
         task_target = None
-        # Try Collective Memory first (new feature)
         if self.message_bus and hasattr(self.message_bus, 'query_memory'):
             for res in ["Metal", "Data"]:
                 m_locs = self.message_bus.query_memory(res)
                 if m_locs:
                     task_target = m_locs[0]
-                    # Verify
                     if self.world.get_item(task_target) != res:
                         self.message_bus.remove_from_memory(res, task_target)
                         task_target = None
-                    else:
-                        break
-
-        if not task_target and self.task_manager:
-            import re
-            open_tickets = self.task_manager.list_open_tickets()
-            if open_tickets:
-                ticket = open_tickets[0]
-                match = re.search(r'\((\d+),\s*(\d+),\s*(\d+)\)', ticket.title)
-                if match:
-                    task_target = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+                    else: break
 
         if task_target: options.append((decision_weights[2].item(), task_target, "Task"))
-
-        # Nearest resource
         resource_pos = self.find_nearest_item(["Metal", "Data"])
         if resource_pos: options.append((decision_weights[3].item(), resource_pos, "Scavenging"))
 
+        target = None
         if options:
-            # Pick highest weight
             options.sort(key=lambda x: x[0], reverse=True)
             target = options[0][1]
-            intent = options[0][2]
-            # Override for extreme battery low
             if self.battery < 20 and charger_pos:
                 target = charger_pos
-                intent = "Emergency Charging"
 
-            # Print decision (for debugging)
-            # print(f"[{self.name}] Decision: {intent} (Weight: {options[0][0]:.2f}) Target: {target}")
-
-        # 3. Move towards target
         if target:
             if self.position == target:
-                # Already there, status update
                 self.status = f"At {self.world.get_item(target)}"
                 self.current_path = []
                 self.current_target = None
                 return
 
-            # Path Caching Logic
             if target != self.current_target or not self.current_path:
                 self.current_target = target
                 self.current_path = a_star(self.world, self.position, target)
-                # Remove current position from path
                 if self.current_path and self.current_path[0] == self.position:
                     self.current_path.pop(0)
 
             if self.current_path:
                 next_step = self.current_path.pop(0)
-                # Verify next_step is adjacent (safety check)
                 dist = sum(abs(a - b) for a, b in zip(self.position, next_step))
                 if dist > 1:
-                    # Path broken or invalid, recalculate
                     self.current_path = a_star(self.world, self.position, target)
                     if self.current_path and self.current_path[0] == self.position:
                         self.current_path.pop(0)
-                    if self.current_path:
-                        next_step = self.current_path.pop(0)
-                    else:
-                        next_step = None
+                    if self.current_path: next_step = self.current_path.pop(0)
+                    else: next_step = None
 
                 if next_step:
-                    dx = next_step[0] - self.position[0]
-                    dy = next_step[1] - self.position[1]
+                    dx, dy = next_step[0] - self.position[0], next_step[1] - self.position[1]
                     if self.is_3d:
-                        dz = next_step[2] - self.position[2]
-                        self.move_3d(dx, dy, dz)
+                        self.move_3d(dx, dy, next_step[2] - self.position[2])
                     else:
                         self.move(dx, dy)
                     self.status = f"Heading to {target}"
                     return
 
-        # 4. Fallback: Random movement
+        # RL Penalty for Idling
+        self.reward_feedback(-0.1, self.last_decision_idx)
         moves = [(0,1,0), (0,-1,0), (1,0,0), (-1,0,0), (0,0,1), (0,0,-1)] if self.is_3d else [(0,1), (0,-1), (1,0), (-1,0)]
         random.shuffle(moves)
         for m in moves:
@@ -417,7 +379,6 @@ class HumanoidAgent:
                 if self.move_3d(*m): return
             else:
                 if self.move(*m): return
-
         self.status = "Idling"
 
     def __repr__(self):

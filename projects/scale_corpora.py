@@ -10,24 +10,24 @@ def scale_corpus(filepath, new_entries):
         json.dump(new_entries, f, indent=4)
     print(f"Cleaned and Scaled {filepath} with {len(new_entries)} high-fidelity entries.")
 
-def generate_deep_thoughts(count=210):
+def generate_deep_thoughts(count=1000):
     entries = []
 
     # Core unique entries from previous versions
     base_entries = [
         {
-            "id": "DT-2026-04-08-TECH-001",
+            "id": "DT-2026-04-09-TECH-001",
             "question": "How does the ATLAS TerrainGenerator simulate volumetric caves without expensive 3D noise libraries?",
             "answer": "<think>Project ATLAS uses a subtractive voxel approach. First, a 2D-noise-based heightmap creates the solid world. Then, a random 3D distribution of 'seed' voxels is used to expand 2x2x2 void blocks. These void blocks are subtracted from the obstacle set, creating natural-looking pockets and tunnels.</think> ATLAS utilizes a subtractive voxel methodology where a primary obstacle set (generated via 2D heightmap functions) is pruned using a secondary set of volumetric 'void' coordinates. This allows for the generation of complex subterranean structures (caves) while maintaining low computational overhead, perfect for real-time 3D agent simulations in 2026.",
             "source": "ATLAS Engineering Manual",
-            "date": "2026-04-08"
+            "date": "2026-04-09"
         },
         {
-            "id": "DT-2026-04-08-TECH-002",
+            "id": "DT-2026-04-09-TECH-002",
             "question": "Explain the interaction between GAIA Acid Rain and VITA HealthMonitor metrics.",
             "answer": "<think>Acid Rain in GAIA is a high-impact event. It specifically targets 'Circuit Integrity'. When an agent is exposed, GAIA's apply_effects method increases the circuit_degradation value in the agent's VITA monitor by a factor of 5 per step.</think> The GAIA-VITA integration creates a direct physical consequence for environmental exposure. GAIA's Acid Rain state triggers a specialized health decay cycle that accelerates circuit degradation and joint wear. This forces agents to weigh the risk of staying in the field during storms against the high economic cost of complete circuit failure or the maintenance fee of a RepairBay.",
             "source": "GAIA Ecosystem Specs",
-            "date": "2026-04-08"
+            "date": "2026-04-09"
         }
     ]
     entries.extend(base_entries)
@@ -53,7 +53,7 @@ def generate_deep_thoughts(count=210):
     for i in range(len(entries) + 1, count + 1):
         sub = random.choice(subsystems)
         concept = random.choice(technical_concepts)
-        entry_id = f"DT-2026-04-08-TECH-{i:03d}"
+        entry_id = f"DT-2026-04-09-TECH-{i:04d}"
 
         question = f"How does {sub} implement {concept} to ensure 2026-grade autonomous stability?"
 
@@ -66,21 +66,21 @@ def generate_deep_thoughts(count=210):
             "question": question,
             "answer": answer,
             "source": "Technical Archive 2026",
-            "date": "2026-04-08"
+            "date": "2026-04-09"
         })
 
     return entries
 
-def generate_modern_day(count=210):
+def generate_modern_day(count=1000):
     entries = []
 
     base_entries = [
         {
-            "id": "MD-2026-04-08-GLOBAL-001",
+            "id": "MD-2026-04-09-GLOBAL-001",
             "question": "How did the 2026 'Solar Flare' event impact decentralized energy markets?",
             "answer": "<think>The solar flare of April 7th caused a massive surge in photovoltaic production. However, the static glitches disrupted the HELIOS smart grid controllers, leading to a temporary market freeze in some urban sectors.</think> The April 2026 Solar Flare serves as a prime case study for the volatility of agent-managed energy grids. While energy supply spiked by 200% due to solar intensity, the simultaneous disruption of HERMES communication channels meant that automated energy traders could not execute buy/sell orders, resulting in localized energy gluts and price crashes despite the abundance of production.",
             "source": "Global Economic Review",
-            "date": "2026-04-08"
+            "date": "2026-04-09"
         }
     ]
     entries.extend(base_entries)
@@ -98,7 +98,7 @@ def generate_modern_day(count=210):
     for i in range(len(entries) + 1, count + 1):
         region = random.choice(regions)
         topic = random.choice(topics)
-        entry_id = f"MD-2026-04-08-NEWS-{i:03d}"
+        entry_id = f"MD-2026-04-09-NEWS-{i:04d}"
 
         question = f"What was the impact of {topic} developments in the {region} during Q2 2026?"
 
@@ -111,14 +111,14 @@ def generate_modern_day(count=210):
             "question": question,
             "answer": answer,
             "source": "2026 Global Dispatch",
-            "date": "2026-04-08"
+            "date": "2026-04-09"
         })
 
     return entries
 
 if __name__ == "__main__":
-    dt_entries = generate_deep_thoughts(210)
-    md_entries = generate_modern_day(210)
+    dt_entries = generate_deep_thoughts(1000)
+    md_entries = generate_modern_day(1000)
 
-    scale_corpus("projects/deep_thoughts/entries_2026_apr_08.json", dt_entries)
-    scale_corpus("projects/modern_day/entries_2026_apr_08.json", md_entries)
+    scale_corpus("projects/deep_thoughts/entries_2026_apr_09.json", dt_entries)
+    scale_corpus("projects/modern_day/entries_2026_apr_09.json", md_entries)
