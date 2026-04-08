@@ -11,17 +11,22 @@ class PriorityMessageBus:
         self.collective_memory = {} # {resource_type: [pos1, pos2, ...]}
         self.priority_levels = {"Emergency": 0, "High": 1, "Normal": 2, "Low": 3}
         self.topic_keys = {"Emergency": "SECURE-KEY-2026", "Internal": "SWARM-ONLY"}
+        self.relays = [] # List of ORION RelayBeacons
+
+    def add_relay(self, relay):
+        self.relays.append(relay)
 
     def subscribe(self, topic, agent_name):
         self.subscribers[topic].append(agent_name)
 
-    def post(self, sender, content, type="Normal", priority="Normal", signed_by=None):
+    def post(self, sender, content, type="Normal", priority="Normal", signed_by=None, origin_pos=None):
         msg = {
             "sender": sender,
             "content": content,
             "type": type,
             "priority": priority,
             "signed_by": signed_by,
+            "origin_pos": origin_pos,
             "step": None
         }
         p_val = self.priority_levels.get(priority, 2)
@@ -42,8 +47,8 @@ class PriorityMessageBus:
         if resource_type in self.collective_memory and pos in self.collective_memory[resource_type]:
             self.collective_memory[resource_type].remove(pos)
 
-    def get_messages(self, type=None, min_priority="Low", viewer_role="Standard"):
-        """Retrieves messages filtered by type, priority, and authorization."""
+    def get_messages(self, type=None, min_priority="Low", viewer_role="Standard", viewer_pos=None):
+        """Retrieves messages filtered by type, priority, authorization, and range."""
         limit = self.priority_levels.get(min_priority, 3)
         all_msgs = []
         for p in range(limit + 1):
@@ -57,6 +62,23 @@ class PriorityMessageBus:
 
             if type and m["type"] != type:
                 continue
+
+            # ORION Range Check
+            if viewer_pos and m.get("origin_pos"):
+                dist = sum(abs(a - b) for a, b in zip(viewer_pos, m["origin_pos"]))
+                base_range = 10
+                # Check for relay boost
+                boost = 0
+                for relay in self.relays:
+                    if relay.is_active:
+                        # If origin or viewer is near a relay, increase range
+                        dist_to_origin = sum(abs(a - b) for a, b in zip(relay.position, m["origin_pos"]))
+                        dist_to_viewer = sum(abs(a - b) for a, b in zip(relay.position, viewer_pos))
+                        if dist_to_origin < 5 or dist_to_viewer < 5:
+                            boost = max(boost, relay.range_boost)
+
+                if dist > (base_range + boost):
+                    continue # Message out of range
 
             filtered_msgs.append(m)
 
