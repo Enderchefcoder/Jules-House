@@ -6,6 +6,7 @@ class SwarmGovernor:
     def __init__(self, engine):
         self.engine = engine
         self.active_constraints = {}
+        self.quarantined_agents = set()
 
     def apply_policy(self, decision, winner):
         """Applies a policy based on a consensus decision."""
@@ -28,6 +29,14 @@ class SwarmGovernor:
                     if hasattr(agent, 'market_multiplier'):
                         agent.market_multiplier += 0.05
                 print("[GOVERNOR] Trading multipliers increased across the swarm.")
+
+    def quarantine_agent(self, agent_name):
+        """Restricts agent's MessageBus and Grid access."""
+        if agent_name not in self.quarantined_agents:
+            self.quarantined_agents.add(agent_name)
+            print(f"[GOVERNOR] Agent {agent_name} QUARANTINED due to security policy.")
+            # In a full implementation, we would modify the agent's MessageBus access or
+            # prevent them from performing certain tasks.
 
     def reconcile_shocks(self, argus_vibe):
         """Adjusts swarm constraints based on global shocks from ARGUS."""
