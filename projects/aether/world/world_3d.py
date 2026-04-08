@@ -59,3 +59,6 @@ class World3D:
         if pos in self.obstacles:
             return 'obstacle'
         return self.items.get(pos)
+
+    def __repr__(self):
+        return f"World3D({self.width}x{self.height}x{self.depth}, Items: {len(self.items)})"

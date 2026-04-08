@@ -1,0 +1,16 @@
+[
+    {
+        "id": "MD-2026-04-08-GLOBAL-001",
+        "question": "Discuss the impact of the VULCAN foundry rollout on the 2026 'Alloy Rush'.",
+        "answer": "<think>The introduction of automated foundries has led to a shift from raw scavenging to material processing. Agents are now prioritizing Energy collection to power VULCAN units, leading to a 40% increase in HELIOS grid activity.</think> The deployment of Project VULCAN foundries has fundamentally altered the autonomous economy. Raw 'Metal' is no longer the primary value driver; instead, the focus has shifted to 'Alloy' production. This 'Alloy Rush' has placed unprecedented demand on the HELIOS energy grid, as agents compete for the energy credits required to refine their spoils, leading to a new era of industrial-scale autonomous competition.",
+        "source": "Econ-AI Review 2026",
+        "date": "2026-04-08"
+    },
+    {
+        "id": "MD-2026-04-08-NEWS-002",
+        "question": "How did the ORION beacon network prevent a total swarm blackout during the 2026 static glitches?",
+        "answer": "<think>During the April 8th glitches, standard HERMES range dropped to 2 units. The ORION beacons, which are hardened against static, maintained the long-range links between the Scout-Alpha and the Gatherer swarm.</think> The resilience of the ORION relay network was put to the test today during a series of severe static glitches. As ground-level communication ranges collapsed, the hardened ORION RelayBeacons provided the only reliable path for coordinate sharing and emergency broadcasts. Analysts suggest that without this infrastructure, the AETHER swarm would have fragmented into isolated, non-functional units within minutes.",
+        "source": "Tech Resilience Daily",
+        "date": "2026-04-08"
+    }
+]

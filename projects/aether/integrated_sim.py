@@ -28,6 +28,9 @@ from projects.aegis.firewall import SwarmFirewall
 from projects.vita.repair_bay import RepairBay
 from projects.gaia.weather import WeatherSystem
 from projects.gaia.ecosystem import EcosystemManager
+from projects.vulcan.foundry import Foundry
+from projects.orion.relay import RelayBeacon
+from projects.hydra.distributor import BrainDistributor
 
 def run_integrated_sim():
     # 1. Initialize 3D World (Voxel Grid) - Scaled for 2026 demands
@@ -52,6 +55,14 @@ def run_integrated_sim():
     # Place VITA Repair Bays
     world.place_item("repair_bay", (5, 0, 5))
     world.place_item("repair_bay", (15, 19, 15))
+
+    # Place VULCAN Foundries
+    world.place_item("foundry", (10, 0, 10))
+    world.place_item("foundry", (0, 10, 10))
+
+    # Place ORION Relays
+    world.place_item("relay_station", (10, 10, 10))
+    world.place_item("relay_station", (5, 15, 10))
 
     # 3. Setup NEXUS Compute Market
     nodes = [
@@ -81,6 +92,15 @@ def run_integrated_sim():
     repair_bay_1 = RepairBay((5, 0, 5))
     repair_bay_2 = RepairBay((15, 19, 15))
 
+    # Initialize VULCAN, ORION, HYDRA integration
+    foundry_1 = Foundry((10, 0, 10))
+    foundry_2 = Foundry((0, 10, 10))
+    relay_1 = RelayBeacon((10, 10, 10))
+    relay_2 = RelayBeacon((5, 15, 10))
+    engine.message_bus.add_relay(relay_1)
+    engine.message_bus.add_relay(relay_2)
+    brain_distributor = BrainDistributor(compute_market) # HYDRA
+
     # 6. Add Specialized Agents - Scaled Swarm with TITAN, ZEPHYR, and NEMESIS Rogue
     agents = [
         HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout"),
@@ -107,8 +127,8 @@ def run_integrated_sim():
     print("\n--- 2026 Integrated Ecosystem: ZEPHYR-ATHENA-AETHER-TeamWorks-HELIOS-ARGUS ---")
     print(f"Agents Active: {[a.name for a in agents]}")
 
-    # 7. Run Simulation Steps - Extended to 200 for deeper emergence
-    for i in range(1, 201):
+    # 7. Run Simulation Steps - Extended for deeper emergence
+    for i in range(1, 251):
         engine.step()
 
         # Update ARGUS Global Monitoring
@@ -149,6 +169,17 @@ def run_integrated_sim():
                 competing_agents = random.sample(valid_agents, 3)
                 winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
 
+        # VULCAN: Process foundries
+        if i % 25 == 0:
+            foundry_1.deposit_resources(metal=10, energy=10)
+            foundry_1.process()
+            foundry_2.deposit_resources(metal=5, energy=5)
+            foundry_2.process()
+
+        # HYDRA: Distributed Inference requests
+        if i % 30 == 0:
+            brain_distributor.request_inference("Scout-Alpha", [0]*8)
+
         # Security Check: AEGIS + Governor Integration
         if i % 5 == 0:
             for rogue in [a for a in agents if a.role == "Rogue"]:
@@ -156,7 +187,7 @@ def run_integrated_sim():
                     governor.quarantine_agent(rogue.name)
 
     # 8. Final Output
-    render_grid_3d(world, filename="visual/aether_complex_v4.png")
+    render_grid_3d(world, filename="visual/aether_complex_v5.png")
     print("\n--- Ecosystem Summary ---")
     print(f"Total Steps: {i}")
     print(f"ATHENA Sessions: {len(mentor_system.experience_log)}")

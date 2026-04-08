@@ -1,0 +1,23 @@
+[
+    {
+        "id": "DT-2026-04-08-TECH-001",
+        "question": "How does Project VULCAN's foundry handle the material conversion logic?",
+        "answer": "<think>Project VULCAN uses a balanced-resource approach. The foundry requires both raw Metal and Energy to produce Alloy. The conversion_rate (default 5) determines the input ratio. min(metal//rate, energy//rate) ensures that production is bottlenecked by the scarcest resource, reflecting 2026 manufacturing constraints.</think> VULCAN implements a stoichiometric conversion model where Metal and Energy are consumed in equal parts to generate high-grade Alloy. By utilizing a floor-division-based throughput calculation, the foundry accurately simulates industrial bottlenecks, where an abundance of raw metal cannot be refined without sufficient energy input from the HELIOS grid.",
+        "source": "VULCAN Engineering Manual",
+        "date": "2026-04-08"
+    },
+    {
+        "id": "DT-2026-04-08-TECH-002",
+        "question": "Detail the ORION relay boost integration in the HERMES message bus.",
+        "answer": "<think>HERMES was updated to include a range check in get_messages. If viewer_pos is provided, it calculates Manhattan distance to origin_pos. ORION relays act as range modifiers; if either the sender or receiver is within 5 units of an active RelayBeacon, the range limit is extended by the relay's range_boost (default 15).</think> The ORION-HERMES integration introduces spatial locality to agent communications. By default, messages have a limited propagation range. However, active ORION RelayBeacons serve as signal repeaters, significantly extending the effective communication radius for any agent within their operational proximity. This forces the swarm to maintain infrastructure to ensure global coordination across large 3D maps.",
+        "source": "ORION-HERMES Protocol Specs",
+        "date": "2026-04-08"
+    },
+    {
+        "id": "DT-2026-04-08-TECH-003",
+        "question": "What is the role of Project HYDRA in the NEXUS compute ecosystem?",
+        "answer": "<think>HYDRA acts as the client-side distributor for remote brain inference. It packages agent state tensors as NEXUS tasks and bids for High-Compute node time. This allows agents with low local battery or aging chassis (VITA) to maintain high intelligence by offloading processing.</think> Project HYDRA serves as the orchestration layer for distributed cognition. By interfacing with the NEXUS Compute Market, HYDRA enables agents to dynamically offload their RobotBrain inference tasks to specialized high-compute nodes. This architectural decoupling allows for 'thin-client' agents that prioritize physical efficiency while still benefiting from complex, high-parameter decision-making models.",
+        "source": "HYDRA Distributed Brain Architecture",
+        "date": "2026-04-08"
+    }
+]

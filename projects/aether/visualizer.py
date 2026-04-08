@@ -81,7 +81,9 @@ def render_grid_3d(world, filename="visual/aether_3d_v1.png"):
         'outpost_beacon': ('lime', '*', 'Outpost Beacon'),
         'research_lab': ('purple', 's', 'Research Lab'),
         'relay_station': ('yellow', 'p', 'Relay Station'),
-        'repair_bay': ('red', '+', 'Repair Bay')
+        'repair_bay': ('red', '+', 'Repair Bay'),
+        'foundry': ('brown', 'H', 'Vulcan Foundry'),
+        'Alloy': ('gold', '8', 'Alloy Resource')
     }
 
     for itype, positions in items_by_type.items():
