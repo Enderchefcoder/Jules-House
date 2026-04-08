@@ -8,6 +8,7 @@ class SwarmFirewall:
     def __init__(self):
         self.blocked_senders = set()
         self.security_logs = []
+        self.sender_history = {} # {sender: [timestamp, ...]}
         # Suspicious patterns: SQL injection-like, shell metacharacters, or anomalous coordinate ranges
         self.danger_patterns = [
             r"([;'\"]|--)",      # Basic injection
@@ -34,6 +35,21 @@ class SwarmFirewall:
             if not isinstance(content, (list, tuple)) or len(content) != 2:
                 self.log_threat(sender, "Malformed Resource Packet", content)
                 return False
+
+        # Behavioral Analysis: Spam Detection
+        import time
+        now = time.time()
+        if sender not in self.sender_history:
+            self.sender_history[sender] = []
+        self.sender_history[sender].append(now)
+
+        # Keep only last 10s of history
+        self.sender_history[sender] = [t for t in self.sender_history[sender] if now - t < 10]
+
+        if len(self.sender_history[sender]) > 5: # Threshold: 5 msgs / 10s
+            self.log_threat(sender, "Spamming Detected", content)
+            self.blocked_senders.add(sender)
+            return False
 
         return True
 

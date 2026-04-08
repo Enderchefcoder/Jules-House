@@ -30,7 +30,10 @@ class ConflictMerger:
 
         def score_agent(a):
             role_score = self.priority_map.get(a.role, 0) * 10
-            health_score = a.health_monitor.get_overall_health() / 10.0 if hasattr(a, 'health_monitor') else 5.0
+            # Safety check: health_monitor might be None even if hasattr returns True
+            health_score = 5.0
+            if hasattr(a, 'health_monitor') and a.health_monitor is not None:
+                health_score = a.health_monitor.get_overall_health() / 10.0
             battery_score = (100 - a.battery) / 20.0
             balance_score = (1000 - a.balance) / 100.0 if hasattr(a, 'balance') else 0
             return role_score + health_score + battery_score + balance_score

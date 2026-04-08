@@ -47,13 +47,29 @@ class DroneAgent:
             return False
 
         new_pos = (self.position[0] + dx, self.position[1] + dy, self.position[2] + dz)
-        # Drones can fly over obstacles (simplified: they just move to any valid world coordinate)
+
+        # ZEPHYR-SPECIFIC 3D Pathfinding: Drones fly over ground-level obstacles.
+        # They only collide if the obstacle height matches the drone altitude.
         if 0 <= new_pos[0] < self.world.width and 0 <= new_pos[1] < self.world.height and 0 <= new_pos[2] < self.world.depth:
+            item = self.world.get_item(new_pos)
+            # Fly over anything unless it's a solid obstacle at the same altitude
+            if item == 'obstacle':
+                # Simplified collision: only collide if we are in the bottom 25% of the world height (mountains)
+                if new_pos[2] < self.world.depth // 4:
+                    print(f"[{self.name}] Terrain collision avoided at {new_pos}.")
+                    return False
+
             self.position = new_pos
             self.battery -= self.battery_cost
             self.status = "Scouting"
             return True
         return False
+
+    def navigate_to_altitude(self, target_z):
+        """Adjusts altitude to avoid terrain or turbulence."""
+        dz = 1 if target_z > self.position[2] else -1 if target_z < self.position[2] else 0
+        if dz != 0:
+            self.move_3d(0, 0, dz)
 
     def perform_task(self):
         """Mapping logic: move randomly or towards unmapped sectors."""

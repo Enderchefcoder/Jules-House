@@ -10,6 +10,7 @@ from projects.aether.world.world_3d import World3D
 from projects.aether.agents.humanoid import HumanoidAgent
 from projects.aether.agents.titan import HumanoidTitan
 from projects.zephyr.drone import DroneAgent
+from projects.nemesis.rogue import RogueAgent
 from projects.athena.mentor import MentorSystem
 from projects.aether.core.engine import SimulationEngine
 from projects.aether.visualizer import render_grid_3d
@@ -80,7 +81,7 @@ def run_integrated_sim():
     repair_bay_1 = RepairBay((5, 0, 5))
     repair_bay_2 = RepairBay((15, 19, 15))
 
-    # 6. Add Specialized Agents - Scaled Swarm with TITAN and ZEPHYR Drones
+    # 6. Add Specialized Agents - Scaled Swarm with TITAN, ZEPHYR, and NEMESIS Rogue
     agents = [
         HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout"),
         HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout"),
@@ -90,7 +91,8 @@ def run_integrated_sim():
         HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader"),
         HumanoidTitan("Titan-01", world, position=(5, 5, 5)),
         DroneAgent("Zephyr-01", world, position=(10, 10, 19)), # ZEPHYR Drone
-        DroneAgent("Zephyr-02", world, position=(5, 5, 15))
+        DroneAgent("Zephyr-02", world, position=(5, 5, 15)),
+        RogueAgent("NEMESIS-Rogue", world, position=(0, 0, 19)) # NEMESIS Rogue
     ]
 
     for agent in agents:
@@ -105,8 +107,8 @@ def run_integrated_sim():
     print("\n--- 2026 Integrated Ecosystem: ZEPHYR-ATHENA-AETHER-TeamWorks-HELIOS-ARGUS ---")
     print(f"Agents Active: {[a.name for a in agents]}")
 
-    # 7. Run Simulation Steps - Extended to 150 for deeper emergence
-    for i in range(1, 151):
+    # 7. Run Simulation Steps - Extended to 200 for deeper emergence
+    for i in range(1, 201):
         engine.step()
 
         # Update ARGUS Global Monitoring
@@ -141,8 +143,17 @@ def run_integrated_sim():
         if i % 20 == 0:
             # Simulate a task claim conflict
             task_id = f"Critical-Resource-{i}"
-            competing_agents = random.sample([a for a in agents if a.role != "Drone"], 3)
-            winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
+            # Ensure we have enough agents to sample from
+            valid_agents = [a for a in agents if hasattr(a, 'role') and a.role != "Drone"]
+            if len(valid_agents) >= 3:
+                competing_agents = random.sample(valid_agents, 3)
+                winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
+
+        # Security Check: AEGIS + Governor Integration
+        if i % 5 == 0:
+            for rogue in [a for a in agents if a.role == "Rogue"]:
+                if rogue.name in firewall.blocked_senders:
+                    governor.quarantine_agent(rogue.name)
 
     # 8. Final Output
     render_grid_3d(world, filename="visual/aether_complex_v4.png")
