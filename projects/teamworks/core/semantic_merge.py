@@ -42,7 +42,10 @@ class ConflictMerger:
             if hasattr(a, 'experience_packets'):
                 experience_score = len(getattr(a, 'experience_packets')) * 2
 
-            return role_score + health_score + battery_score + balance_score + experience_score
+            # Industrial Tracking: Experience bonus based on completed tasks
+            task_score = getattr(a, 'tasks_completed', 0) * 5
+
+            return role_score + health_score + battery_score + balance_score + experience_score + task_score
 
         # Sort agents by score
         agents.sort(key=score_agent, reverse=True)
