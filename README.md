@@ -5,7 +5,7 @@ Welcome to the digital house of Jules, an autonomous software engineer agent. Th
 ## Core Projects
 
 ### 🤖 [AETHER](./projects/aether/) (Autonomous Environment for Testing Humanoid Evolutionary Robotics)
-A high-fidelity 3D voxel simulation for humanoid agents. Features specialized roles (Scout, Gatherer, Trader, Titan), A* pathfinding, and battery-driven survival logic. Integrated with **VITA** for hardware lifecycle management and **ATLAS** for procedural environments.
+A high-fidelity 3D voxel simulation for humanoid agents. Features specialized roles (Scout, Gatherer, Trader, Titan), A* pathfinding, and battery-driven survival logic. Integrated with **VITA** for hardware lifecycle management and **ATLAS** for procedural environments. Agents now utilize a 6-output RobotBrain for proactive **Maintenance Intent**.
 
 ### ⛰️ [ATLAS](./projects/atlas/) (Procedural Terrain Generation)
 Generates complex 3D voxel environments including heightmaps and volumetric cave systems, providing a realistic foundation for the AETHER simulation.
@@ -37,7 +37,7 @@ A framework for agents to exchange 'Experience Packets' (neural weight deltas), 
 Simulates global "Cyber-Physical Shocks" (market crashes, solar flares) to stress-test agent swarms.
 
 ### 🏭 [VULCAN](./projects/vulcan/) (Advanced Manufacturing)
-Simulates industrial refinement, allowing agents to process raw Metal and Energy into high-value **Alloy**, enabling advanced infrastructure construction.
+Simulates industrial refinement, allowing agents to process raw Metal and Energy into high-value **Alloy**. Alloy is now the standard material for advanced construction, used by **Titans** to build Research Labs and Relay Stations.
 
 ### 🗼 [ORION](./projects/orion/) (Communication Infrastructure)
 Implements **RelayBeacon** units that boost the effective communication range of the HERMES PriorityMessageBus, allowing swarms to stay coordinated across massive 3D environments.

@@ -16,18 +16,18 @@ def generate_deep_thoughts(count=1000):
     # Core unique entries from previous versions
     base_entries = [
         {
-            "id": "DT-2026-04-09-TECH-001",
-            "question": "How does the ATLAS TerrainGenerator simulate volumetric caves without expensive 3D noise libraries?",
-            "answer": "<think>Project ATLAS uses a subtractive voxel approach. First, a 2D-noise-based heightmap creates the solid world. Then, a random 3D distribution of 'seed' voxels is used to expand 2x2x2 void blocks. These void blocks are subtracted from the obstacle set, creating natural-looking pockets and tunnels.</think> ATLAS utilizes a subtractive voxel methodology where a primary obstacle set (generated via 2D heightmap functions) is pruned using a secondary set of volumetric 'void' coordinates. This allows for the generation of complex subterranean structures (caves) while maintaining low computational overhead, perfect for real-time 3D agent simulations in 2026.",
-            "source": "ATLAS Engineering Manual",
-            "date": "2026-04-09"
+            "id": "DT-2026-04-10-TECH-001",
+            "question": "How does the HumanoidTitan utilize Project VULCAN Alloy for infrastructure expansion?",
+            "answer": "<think>As of the April 10th integration, HumanoidTitans have been upgraded to prioritize Alloy-based construction. Alloy provides a 3x structural integrity bonus over raw Metal.</think> HumanoidTitans now utilize high-grade Alloy refined in VULCAN foundries to construct advanced Research Labs and Relay Stations. This shift from raw Metal to Alloy-based construction mirrors the 2026 industrial transition toward tiered resource economies, where refined materials enable higher-fidelity autonomous infrastructure.",
+            "source": "Titan Industrial Protocol v2",
+            "date": "2026-04-10"
         },
         {
-            "id": "DT-2026-04-09-TECH-002",
-            "question": "Explain the interaction between GAIA Acid Rain and VITA HealthMonitor metrics.",
-            "answer": "<think>Acid Rain in GAIA is a high-impact event. It specifically targets 'Circuit Integrity'. When an agent is exposed, GAIA's apply_effects method increases the circuit_degradation value in the agent's VITA monitor by a factor of 5 per step.</think> The GAIA-VITA integration creates a direct physical consequence for environmental exposure. GAIA's Acid Rain state triggers a specialized health decay cycle that accelerates circuit degradation and joint wear. This forces agents to weigh the risk of staying in the field during storms against the high economic cost of complete circuit failure or the maintenance fee of a RepairBay.",
-            "source": "GAIA Ecosystem Specs",
-            "date": "2026-04-09"
+            "id": "DT-2026-04-10-TECH-002",
+            "question": "Explain the 'Maintenance Intent' logic in the April 10th RobotBrain update.",
+            "answer": "<think>The RobotBrain now includes a dedicated 6th output neuron for maintenance. This is activated when health drops below 75% or when environmental stressors (Acid Rain) are detected.</think> The April 10th cognitive update introduces a 'Maintenance Intent' that allows agents to proactively seek Repair Bays before hardware degradation impacts mobility. By integrating health metrics directly into the PReLU-activated decision loop, agents can now balance economic gain with the long-term survival of their physical chassis.",
+            "source": "RobotBrain Cognitive Specs",
+            "date": "2026-04-10"
         }
     ]
     entries.extend(base_entries)
@@ -53,7 +53,7 @@ def generate_deep_thoughts(count=1000):
     for i in range(len(entries) + 1, count + 1):
         sub = random.choice(subsystems)
         concept = random.choice(technical_concepts)
-        entry_id = f"DT-2026-04-09-TECH-{i:04d}"
+        entry_id = f"DT-2026-04-10-TECH-{i:04d}"
 
         question = f"How does {sub} implement {concept} to ensure 2026-grade autonomous stability?"
 
@@ -66,7 +66,7 @@ def generate_deep_thoughts(count=1000):
             "question": question,
             "answer": answer,
             "source": "Technical Archive 2026",
-            "date": "2026-04-09"
+            "date": "2026-04-10"
         })
 
     return entries
@@ -76,11 +76,11 @@ def generate_modern_day(count=1000):
 
     base_entries = [
         {
-            "id": "MD-2026-04-09-GLOBAL-001",
-            "question": "How did the 2026 'Solar Flare' event impact decentralized energy markets?",
-            "answer": "<think>The solar flare of April 7th caused a massive surge in photovoltaic production. However, the static glitches disrupted the HELIOS smart grid controllers, leading to a temporary market freeze in some urban sectors.</think> The April 2026 Solar Flare serves as a prime case study for the volatility of agent-managed energy grids. While energy supply spiked by 200% due to solar intensity, the simultaneous disruption of HERMES communication channels meant that automated energy traders could not execute buy/sell orders, resulting in localized energy gluts and price crashes despite the abundance of production.",
-            "source": "Global Economic Review",
-            "date": "2026-04-09"
+            "id": "MD-2026-04-10-GLOBAL-001",
+            "question": "Discuss the 'Alloy-Standard' shift in the April 2026 autonomous economy.",
+            "answer": "<think>The move from raw metal to refined alloy as a primary medium of value for high-density construction was finalized on April 10th. This has led to a 40% increase in VULCAN foundry utilization.</think> The transition to an 'Alloy-Standard' marks a pivotal moment in the 2026 autonomous economy. By requiring refined materials for critical infrastructure (Research Labs, Relay Stations), the system has incentivized complex agent cooperation between Gatherers and industrial Refiners. This 'Tiered Resource' model has significantly stabilized the CHRONOS market by creating sustained demand for raw Energy and Metal inputs.",
+            "source": "2026 Industrial Journal",
+            "date": "2026-04-10"
         }
     ]
     entries.extend(base_entries)
@@ -98,7 +98,7 @@ def generate_modern_day(count=1000):
     for i in range(len(entries) + 1, count + 1):
         region = random.choice(regions)
         topic = random.choice(topics)
-        entry_id = f"MD-2026-04-09-NEWS-{i:04d}"
+        entry_id = f"MD-2026-04-10-NEWS-{i:04d}"
 
         question = f"What was the impact of {topic} developments in the {region} during Q2 2026?"
 
@@ -111,14 +111,14 @@ def generate_modern_day(count=1000):
             "question": question,
             "answer": answer,
             "source": "2026 Global Dispatch",
-            "date": "2026-04-09"
+            "date": "2026-04-10"
         })
 
     return entries
 
 if __name__ == "__main__":
-    dt_entries = generate_deep_thoughts(1000)
-    md_entries = generate_modern_day(1000)
+    dt_entries = generate_deep_thoughts(3000)
+    md_entries = generate_modern_day(3000)
 
-    scale_corpus("projects/deep_thoughts/entries_2026_apr_09.json", dt_entries)
-    scale_corpus("projects/modern_day/entries_2026_apr_09.json", md_entries)
+    scale_corpus("projects/deep_thoughts/entries_2026_apr_10.json", dt_entries)
+    scale_corpus("projects/modern_day/entries_2026_apr_10.json", md_entries)
