@@ -72,7 +72,7 @@ class HumanoidAgent:
             self.market_multiplier = 1.25
 
         # Economic attributes
-        self.inventory = {"Metal": 0, "Data": 0}
+        self.inventory = {"Metal": 0, "Data": 0, "Alloy": 0}
         self.balance = 500.0  # Starting capital
         self.market = market
         self.message_bus = message_bus
@@ -240,7 +240,7 @@ class HumanoidAgent:
                       self.status = "Maintenance Complete"
                       return
 
-        if current_item in ["Metal", "Data"]:
+        if current_item in ["Metal", "Data", "Alloy"]:
             if sum(self.inventory.values()) < self.inventory_capacity:
                 self.inventory[current_item] += 1
                 if hasattr(self.world, 'remove_item'):
@@ -260,6 +260,15 @@ class HumanoidAgent:
                 return
             else:
                 self.status = "Inventory Full"
+
+        if current_item == "repair_bay":
+            if self.health_monitor:
+                if self.balance >= 200:
+                    self.balance -= 200
+                    self.health_monitor.perform_repair("Full")
+                    print(f"[{self.name}] Professional repair at REPAIR BAY. Balance: {self.balance:.2f}")
+                    self.status = "Hardware Restored"
+                    return
 
         if current_item == "market_hub":
             if self.market:
@@ -312,6 +321,8 @@ class HumanoidAgent:
         # Target Selection logic
         charger_pos = self.find_nearest_item("charger")
         market_pos = self.find_nearest_item("market_hub")
+        repair_pos = self.find_nearest_item("repair_bay")
+
         options = []
         if charger_pos: options.append((decision_weights[0].item(), charger_pos, "Charging"))
         if market_pos: options.append((decision_weights[1].item(), market_pos, "Selling"))
@@ -330,13 +341,18 @@ class HumanoidAgent:
         if task_target: options.append((decision_weights[2].item(), task_target, "Task"))
         resource_pos = self.find_nearest_item(["Metal", "Data"])
         if resource_pos: options.append((decision_weights[3].item(), resource_pos, "Scavenging"))
+        if repair_pos: options.append((decision_weights[5].item(), repair_pos, "Maintenance"))
 
         target = None
         if options:
             options.sort(key=lambda x: x[0], reverse=True)
             target = options[0][1]
+
+            # Absolute Overrides
             if self.battery < 20 and charger_pos:
                 target = charger_pos
+            elif self.health_monitor and self.health_monitor.get_overall_health() < 30 and repair_pos:
+                target = repair_pos
 
         if target:
             if self.position == target:

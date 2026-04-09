@@ -7,11 +7,11 @@ class RobotBrain(nn.Module):
     A neural network brain for a humanoid robot.
     Uses PReLU activation as requested.
     """
-    def __init__(self, input_size=8, hidden_size=24, output_size=5):
+    def __init__(self, input_size=8, hidden_size=24, output_size=6):
         super(RobotBrain, self).__init__()
         # Input: [survival, profit, task, health, role_scaled, balance_scaled, 0, 0] (3D)
         # Input: [survival, profit, task, health, role_scaled, balance_scaled] (2D)
-        # Output: [move_x, move_y, move_z, recharge_intent]
+        # Output: [charging, selling, tasking, scavenging, idle, maintenance]
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.prelu1 = nn.PReLU()
         self.fc2 = nn.Linear(hidden_size, hidden_size)

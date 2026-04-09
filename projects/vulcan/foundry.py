@@ -26,10 +26,14 @@ class Foundry:
             return can_produce
         return 0
 
-    def collect_alloy(self):
-        amount = self.alloy_output
-        self.alloy_output = 0
-        return amount
+    def collect_alloy(self, amount=None):
+        if amount is None:
+            amount = self.alloy_output
+
+        actual_collect = min(amount, self.alloy_output)
+        self.alloy_output -= actual_collect
+        print(f"[VULCAN] Foundry at {self.position}: {actual_collect} Alloy collected.")
+        return actual_collect
 
     def __repr__(self):
         return f"Foundry({self.position}, Metal: {self.metal_input}, Energy: {self.energy_input}, Alloy: {self.alloy_output})"

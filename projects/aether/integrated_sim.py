@@ -163,6 +163,18 @@ def run_integrated_sim():
                     agent.inventory["Metal"] = 0
                     print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 2.")
 
+            # Alloy collection logic
+            if agent.position == foundry_1.position and foundry_1.alloy_output > 0:
+                space = agent.inventory_capacity - sum(agent.inventory.values())
+                if space > 0:
+                    collected = foundry_1.collect_alloy(space)
+                    agent.inventory["Alloy"] += collected
+            elif agent.position == foundry_2.position and foundry_2.alloy_output > 0:
+                space = agent.inventory_capacity - sum(agent.inventory.values())
+                if space > 0:
+                    collected = foundry_2.collect_alloy(space)
+                    agent.inventory["Alloy"] += collected
+
         # Periodically simulate sensory capture (Feel AI + VERITAS)
         if i % 10 == 0:
             for agent in [a for a in agents if hasattr(a, 'sensory_system')]:
@@ -203,7 +215,7 @@ def run_integrated_sim():
                     governor.quarantine_agent(rogue.name)
 
     # 8. Final Output
-    render_grid_3d(world, filename="visual/aether_complex_v5.png")
+    render_grid_3d(world, filename="visual/aether_complex_v6.png")
     print("\n--- Ecosystem Summary ---")
     print(f"Total Steps: {i}")
     print(f"ATHENA Sessions: {len(mentor_system.experience_log)}")

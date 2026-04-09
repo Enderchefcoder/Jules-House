@@ -36,7 +36,13 @@ class ConflictMerger:
                 health_score = a.health_monitor.get_overall_health() / 10.0
             battery_score = (100 - a.battery) / 20.0
             balance_score = (1000 - a.balance) / 100.0 if hasattr(a, 'balance') else 0
-            return role_score + health_score + battery_score + balance_score
+
+            # Project ATHENA: Experience bonus
+            experience_score = 0
+            if hasattr(a, 'experience_packets'):
+                experience_score = len(getattr(a, 'experience_packets')) * 2
+
+            return role_score + health_score + battery_score + balance_score + experience_score
 
         # Sort agents by score
         agents.sort(key=score_agent, reverse=True)

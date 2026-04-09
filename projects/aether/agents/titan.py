@@ -10,13 +10,21 @@ class HumanoidTitan(HumanoidAgent):
         super().__init__(name, world, position, role=role)
         self.battery_cost = 15 # Higher consumption
         self.inventory_capacity = 50 # Massive capacity
-        self.build_materials = {"Metal": 20} # Cost to build an outpost
+        self.build_materials = {"Metal": 20, "Alloy": 5} # Cost to build an outpost
         self.can_build = True
 
     def build_outpost(self):
         """Constructs a new charger/market hub or high-efficiency Beacon."""
-        if self.inventory.get("Metal", 0) >= self.build_materials["Metal"]:
-            self.inventory["Metal"] -= self.build_materials["Metal"]
+        has_metal = self.inventory.get("Metal", 0) >= self.build_materials["Metal"]
+        has_alloy = self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]
+
+        if has_metal or has_alloy:
+            if has_alloy:
+                self.inventory["Alloy"] -= self.build_materials["Alloy"]
+                print(f"[TITAN] {self.name} used refined ALLOY for construction.")
+            else:
+                self.inventory["Metal"] -= self.build_materials["Metal"]
+
             # Decide what to build
             choice = random.choice(["charger", "market_hub", "outpost_beacon", "research_lab", "relay_station"])
             self.world.place_item(choice, self.position)
@@ -29,28 +37,44 @@ class HumanoidTitan(HumanoidAgent):
             return False
 
     def build_research_lab(self):
-        """Dedicated method for research lab (costs more Data)."""
-        if self.inventory.get("Metal", 0) >= 10 and self.inventory.get("Data", 0) >= 10:
-            self.inventory["Metal"] -= 10
-            self.inventory["Data"] -= 10
+        """Dedicated method for research lab (costs more Data and Alloy)."""
+        has_resources = (self.inventory.get("Metal", 0) >= 10 and self.inventory.get("Data", 0) >= 10) or \
+                        (self.inventory.get("Alloy", 0) >= 10)
+
+        if has_resources:
+            if self.inventory.get("Alloy", 0) >= 10:
+                self.inventory["Alloy"] -= 10
+                print(f"[TITAN] {self.name} used 10 ALLOY for RESEARCH LAB.")
+            else:
+                self.inventory["Metal"] -= 10
+                self.inventory["Data"] -= 10
+
             self.world.place_item("research_lab", self.position)
             print(f"[TITAN] {self.name} established a RESEARCH LAB at {self.position}!")
             return True
         return False
 
     def build_relay_station(self):
-        """Dedicated method for relay station (costs more Metal)."""
-        if self.inventory.get("Metal", 0) >= 20:
-            self.inventory["Metal"] -= 20
+        """Dedicated method for relay station (costs more Metal/Alloy)."""
+        has_resources = (self.inventory.get("Metal", 0) >= 20) or (self.inventory.get("Alloy", 0) >= 5)
+
+        if has_resources:
+            if self.inventory.get("Alloy", 0) >= 5:
+                self.inventory["Alloy"] -= 5
+                print(f"[TITAN] {self.name} used 5 ALLOY for RELAY STATION.")
+            else:
+                self.inventory["Metal"] -= 20
+
             self.world.place_item("relay_station", self.position)
             print(f"[TITAN] {self.name} deployed a RELAY STATION at {self.position}!")
             return True
         return False
 
     def perform_task(self):
-        """Extended task performance: Titans prioritize building if they have metal."""
-        # 1. If we have enough metal, try to build an outpost in a new area
-        if self.inventory.get("Metal", 0) >= self.build_materials["Metal"]:
+        """Extended task performance: Titans prioritize building if they have materials."""
+        # 1. If we have enough materials, try to build an outpost in a new area
+        if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \
+           self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]:
             # Simple heuristic: don't build on top of existing chargers/markets
             current_tile = self.world.get_item(self.position)
             if current_tile not in ["charger", "market_hub"]:
