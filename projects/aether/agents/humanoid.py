@@ -82,19 +82,27 @@ class HumanoidAgent:
         self.sensory_system = SensorySystem(self.name)
         self.health_monitor = HealthMonitor(self.name) if HealthMonitor else None
         self.firewall = SwarmFirewall() if SwarmFirewall else None
+        self.tasks_completed = 0
 
         # Path Caching (Optimization)
         self.current_path = []
         self.current_target = None
 
     def reward_feedback(self, reward, target_idx):
-        """Perform a single RL step based on a decision reward."""
+        """Perform a single RL step based on a decision reward with battery-sensitive scaling."""
         if hasattr(self, 'last_state') and self.last_state is not None:
              self.optimizer.zero_grad()
              output = self.brain(self.last_state)
+
+             # 2026 Cognitive Refinement: Scale reward by battery status
+             # Positive rewards are more significant when battery is high (efficiency focus)
+             # Penalties are more severe when battery is low (survival focus)
+             battery_modifier = self.battery / 100.0 if reward > 0 else (2.0 - (self.battery / 100.0))
+             scaled_reward = reward * battery_modifier
+
              # One-hot target
              target = output.clone().detach()
-             target[target_idx] += reward
+             target[target_idx] += scaled_reward
              loss = F.mse_loss(output, target)
              loss.backward()
              self.optimizer.step()
@@ -243,6 +251,7 @@ class HumanoidAgent:
         if current_item in ["Metal", "Data", "Alloy"]:
             if sum(self.inventory.values()) < self.inventory_capacity:
                 self.inventory[current_item] += 1
+                self.tasks_completed += 1
                 if hasattr(self.world, 'remove_item'):
                     self.world.remove_item(self.position)
 
@@ -280,6 +289,7 @@ class HumanoidAgent:
                         self.inventory[res] = 0
                 if total_sale > 0:
                     self.balance += total_sale
+                    self.tasks_completed += 1
                     # RL Reward for sale
                     if hasattr(self, 'last_decision_idx'):
                         self.reward_feedback(2.0, self.last_decision_idx)
