@@ -29,13 +29,23 @@ class MentorSystem:
         if len(agents) < 2:
             return
 
-        # Simple logic: Scouts share resource locations, Traders share market trends
-        potential_mentors = [a for a in agents if a.role in ["Scout", "Trader", "Drone"]]
-        potential_mentees = [a for a in agents if a.role in ["Gatherer", "Titan"]]
+        # 2026 Knowledge Distillation: Agents now share neural state
+        potential_mentors = [a for a in agents if a.role in ["Scout", "Trader", "Drone", "Titan"]]
+        potential_mentees = [a for a in agents if a.role in ["Gatherer", "Generalist"]]
 
         if potential_mentors and potential_mentees:
             mentor = random.choice(potential_mentors)
             mentee = random.choice(potential_mentees)
+
+            # Check for weight distillation capability
+            if hasattr(mentor, 'brain') and hasattr(mentee, 'receive_experience'):
+                # Simulate weight distillation (sharing model state dict)
+                weights = mentor.brain.state_dict()
+                # We only send a subset or a 'distilled' version to simulate 2026 bandwidth limits
+                distilled_weights = {k: v * 0.1 for k, v in weights.items()} # 10% influence
+                mentee.receive_experience(mentor.name, "Neural Distillation", distilled_weights)
+                self.log_mentorship(mentor.name, mentee.name, "Neural Distillation", "Distilled state_dict")
+                return
 
             if mentor.role == "Drone" or mentor.role == "Scout":
                 # Share mapped sectors or resource locations

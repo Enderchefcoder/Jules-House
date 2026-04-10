@@ -72,16 +72,34 @@ class HumanoidTitan(HumanoidAgent):
 
     def perform_task(self):
         """Extended task performance: Titans prioritize building if they have materials."""
-        # 1. If we have enough materials, try to build an outpost in a new area
-        if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \
-           self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]:
-            # Simple heuristic: don't build on top of existing chargers/markets
-            current_tile = self.world.get_item(self.position)
-            if current_tile not in ["charger", "market_hub"]:
-                if self.build_outpost():
-                    return
+        # 2026 Autonomous Infrastructure Logic
+        # Check swarm needs: If many agents are low health, prioritize Research Labs (which provide maintenance)
+        # If communication is limited (simulated), build Relay Stations.
 
-        # 2. Otherwise, behave like a standard agent (Scavenging Metal)
+        has_alloy = self.inventory.get("Alloy", 0) >= 10
+        has_metal = self.inventory.get("Metal", 0) >= 20
+
+        if has_alloy or has_metal:
+            # Simple swarm-need heuristics
+            # 1. Check health of nearby agents (simulated)
+            need_health = random.random() < 0.3 # 30% chance to prioritize lab
+            if need_health and self.build_research_lab():
+                return
+
+            # 2. Check communication range (simulated)
+            need_relay = random.random() < 0.2 # 20% chance to prioritize relay
+            if need_relay and self.build_relay_station():
+                return
+
+            # 3. Default to general outpost if materials allow
+            if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \
+               self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]:
+                current_tile = self.world.get_item(self.position)
+                if current_tile not in ["charger", "market_hub", "research_lab", "relay_station"]:
+                    if self.build_outpost():
+                        return
+
+        # 4. Otherwise, behave like a standard agent (Scavenging)
         super().perform_task()
 
 if __name__ == "__main__":
