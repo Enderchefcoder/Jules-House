@@ -131,7 +131,7 @@ def run_integrated_sim():
     print(f"Agents Active: {[a.name for a in agents]}")
 
     # 7. Run Simulation Steps - Extended for deeper emergence
-    for i in range(1, 301):
+    for i in range(1, 501):
         engine.step()
 
         # Update ARGUS Global Monitoring
@@ -163,17 +163,20 @@ def run_integrated_sim():
                     agent.inventory["Metal"] = 0
                     print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 2.")
 
-            # Alloy collection logic
-            if agent.position == foundry_1.position and foundry_1.alloy_output > 0:
-                space = agent.inventory_capacity - sum(agent.inventory.values())
-                if space > 0:
-                    collected = foundry_1.collect_alloy(space)
-                    agent.inventory["Alloy"] += collected
-            elif agent.position == foundry_2.position and foundry_2.alloy_output > 0:
-                space = agent.inventory_capacity - sum(agent.inventory.values())
-                if space > 0:
-                    collected = foundry_2.collect_alloy(space)
-                    agent.inventory["Alloy"] += collected
+        # Alloy collection logic - Enhanced for robustness
+        current_foundry = None
+        if agent.position == foundry_1.position:
+            current_foundry = foundry_1
+        elif agent.position == foundry_2.position:
+            current_foundry = foundry_2
+
+        if current_foundry and current_foundry.alloy_output > 0:
+            current_inv = sum(agent.inventory.values())
+            space = agent.inventory_capacity - current_inv
+            if space > 0:
+                collected = current_foundry.collect_alloy(min(space, current_foundry.alloy_output))
+                agent.inventory["Alloy"] = agent.inventory.get("Alloy", 0) + collected
+                print(f"[VULCAN] {agent.name} collected {collected} ALLOY.")
 
         # Periodically simulate sensory capture (Feel AI + VERITAS)
         if i % 10 == 0:
@@ -215,7 +218,7 @@ def run_integrated_sim():
                     governor.quarantine_agent(rogue.name)
 
     # 8. Final Output
-    render_grid_3d(world, filename="visual/aether_complex_v6.png")
+    render_grid_3d(world, filename="visual/aether_complex_v7.png")
     print("\n--- Ecosystem Summary ---")
     print(f"Total Steps: {i}")
     print(f"ATHENA Sessions: {len(mentor_system.experience_log)}")

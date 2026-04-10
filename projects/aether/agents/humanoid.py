@@ -88,6 +88,19 @@ class HumanoidAgent:
         self.current_path = []
         self.current_target = None
 
+    def receive_experience(self, mentor_name, exp_type, data):
+        """Incorporate an experience packet (e.g., neural weights) from another agent."""
+        if exp_type == "Neural Distillation":
+            # Apply distilled weights to current brain
+            with torch.no_grad():
+                current_weights = self.brain.state_dict()
+                for k, v in data.items():
+                    if k in current_weights:
+                        # Soft update: current = 0.9*current + 0.1*mentor
+                        current_weights[k] = current_weights[k] * 0.9 + v
+                self.brain.load_state_dict(current_weights)
+            print(f"[{self.name}] Integrated Neural Distillation from {mentor_name}.")
+
     def reward_feedback(self, reward, target_idx):
         """Perform a single RL step based on a decision reward with battery-sensitive scaling."""
         if hasattr(self, 'last_state') and self.last_state is not None:
