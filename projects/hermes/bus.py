@@ -12,6 +12,7 @@ class PriorityMessageBus:
         self.priority_levels = {"Emergency": 0, "High": 1, "Normal": 2, "Low": 3}
         self.topic_keys = {"Emergency": "SECURE-KEY-2026", "Internal": "SWARM-ONLY"}
         self.relays = [] # List of ORION RelayBeacons
+        self.global_state = {"vibe": 0.5, "sentiment": 0.5} # 2026 Sentiment Integration
 
     def add_relay(self, relay):
         self.relays.append(relay)

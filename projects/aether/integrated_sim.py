@@ -6,6 +6,7 @@ import random
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
+from projects.chronos.market import Market
 from projects.aether.world.world_3d import World3D
 from projects.aether.agents.humanoid import HumanoidAgent
 from projects.aether.agents.titan import HumanoidTitan
@@ -78,6 +79,7 @@ def run_integrated_sim():
     engine = SimulationEngine(world)
 
     # 5. Initialize Core Systems (TeamWorks, HELIOS, Swarm Consensus, ARGUS, ATHENA)
+    market = Market()
     org_chart = OrgChart()
     conflict_resolver = ConflictResolver()
     conflict_merger = ConflictMerger() # TeamWorks Intent Merging
@@ -104,15 +106,15 @@ def run_integrated_sim():
     brain_distributor = BrainDistributor(compute_market) # HYDRA
 
     # 6. Add Specialized Agents - Scaled Swarm with TITAN, ZEPHYR, and NEMESIS Rogue
-    # Pass brain_distributor to humanoid agents
+    # Pass brain_distributor and market to humanoid agents
     agents = [
-        HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout", brain_distributor=brain_distributor),
-        HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout", brain_distributor=brain_distributor),
-        HumanoidAgent("Gatherer-Beta", world, position=(10, 10, 10), role="Gatherer", brain_distributor=brain_distributor),
-        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer", brain_distributor=brain_distributor),
-        HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader", brain_distributor=brain_distributor),
-        HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader", brain_distributor=brain_distributor),
-        HumanoidTitan("Titan-01", world, position=(5, 5, 5)), # Titan might not need it or handles it differently
+        HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
+        HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
+        HumanoidAgent("Gatherer-Beta", world, position=(10, 10, 10), role="Gatherer", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
+        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
+        HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
+        HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
+        HumanoidTitan("Titan-01", world, position=(5, 5, 5), market=market, message_bus=engine.message_bus),
         DroneAgent("Zephyr-01", world, position=(10, 10, 19)), # ZEPHYR Drone
         DroneAgent("Zephyr-02", world, position=(5, 5, 15)),
         RogueAgent("NEMESIS-Rogue", world, position=(0, 0, 19)) # NEMESIS Rogue
@@ -139,6 +141,22 @@ def run_integrated_sim():
         if event:
             print(f"[ARGUS] ALERT: {event['name']} - {event['desc']}")
             governor.reconcile_shocks(argus.current_vibe)
+
+        # 2026 Sentiment Update
+        health_list = [a.health_monitor.get_overall_health() for a in agents if hasattr(a, 'health_monitor') and a.health_monitor is not None]
+        avg_agent_health = sum(health_list) / len(health_list) if health_list else 100.0
+        agent_stress = (100 - avg_agent_health) / 100.0
+
+        # Update Market Sentiment
+        if hasattr(engine.message_bus, 'global_state'):
+            vibe = argus.get_sentiment_metric()
+            engine.message_bus.global_state["vibe"] = vibe
+
+            # Update CHRONOS Market Sentiment
+            market.update_sentiment(vibe, [1.0 - (a.health_monitor.get_overall_health()/100.0) for a in agents if hasattr(a, 'health_monitor') and a.health_monitor is not None])
+
+            # Sync MessageBus state with Market state
+            engine.message_bus.global_state["sentiment"] = market.market_sentiment
 
         # Update GAIA Environment
         gaia_weather.step()
