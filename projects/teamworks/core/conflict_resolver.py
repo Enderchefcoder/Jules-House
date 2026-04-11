@@ -37,6 +37,11 @@ class ConflictResolver:
                 seniority = min(2.0, agent.balance / 1000.0)
                 weight += seniority
 
+            # Industrial Tracking: Experience bonus based on completed tasks
+            if hasattr(agent, 'tasks_completed'):
+                experience_bonus = min(5.0, agent.tasks_completed / 10.0)
+                weight += experience_bonus
+
             weights.append(max(0.1, weight))
 
         winner = random.choices(agents, weights=weights, k=1)[0]
