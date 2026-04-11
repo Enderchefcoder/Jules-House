@@ -28,6 +28,13 @@ def generate_deep_thoughts(count=1000):
             "answer": "<think>HumanoidTitans now autonomously assess swarm needs (health, communication range) to decide between Research Labs and Relay Stations.</think> The April 11th implementation of 'Autonomous Infrastructure Logic' allows HumanoidTitans to function as environmental architects. By monitoring simulated swarm stressors, Titans can proactively deploy Relay Stations to mitigate signal dropouts or Research Labs to provide localized maintenance hubs. This self-healing infrastructure ensures the AETHER ecosystem maintains high operational uptime even under severe GAIA weather stressors.",
             "source": "Titan Architecture Specs",
             "date": "2026-04-11"
+        },
+        {
+            "id": "DT-2026-04-11-TECH-003",
+            "question": "Explain the 'Task-Based Seniority' system integrated into the TeamWorks ConflictResolver.",
+            "answer": "<think>On April 11th, the ConflictResolver was updated to include a 'tasks_completed' metric. This reward-based seniority grants experienced agents a higher probability of winning resource contentions.</think> TeamWorks now implements 'Task-Based Seniority,' a meritocratic conflict resolution heuristic. By factoring an agent's historical `tasks_completed` count into the priority-weighted lottery, the system ensures that experienced 'Gatherers' and 'Titans' have a strategic edge in resource acquisition. This reduces the risk of critical task failure by prioritizing agents with a proven track record of operational efficiency.",
+            "source": "TeamWorks Protocol v4",
+            "date": "2026-04-11"
         }
     ]
     entries.extend(base_entries)
@@ -119,8 +126,8 @@ def generate_modern_day(count=1000):
     return entries
 
 if __name__ == "__main__":
-    dt_entries = generate_deep_thoughts(8000)
-    md_entries = generate_modern_day(8000)
+    dt_entries = generate_deep_thoughts(8500)
+    md_entries = generate_modern_day(8500)
 
     scale_corpus("projects/deep_thoughts/entries_2026_apr_11.json", dt_entries)
     scale_corpus("projects/modern_day/entries_2026_apr_11.json", md_entries)

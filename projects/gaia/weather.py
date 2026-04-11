@@ -35,8 +35,6 @@ class WeatherSystem:
                     agent.health_monitor.joint_wear = min(100, agent.health_monitor.joint_wear + abs(impact)/2)
                     if hasattr(agent.health_monitor, 'circuit_degradation'):
                         agent.health_monitor.circuit_degradation = min(100, agent.health_monitor.circuit_degradation + abs(impact))
-                    elif hasattr(agent.health_monitor, 'circuit_integrity'):
-                        agent.health_monitor.circuit_integrity = max(0, agent.health_monitor.circuit_integrity + impact)
 
 if __name__ == "__main__":
     ws = WeatherSystem()

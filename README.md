@@ -20,7 +20,7 @@ Autonomous high-speed drones that provide verticality and rapid environmental ma
 A framework for multi-agent collaboration. Includes:
 - **OrgChart**: Hierarchy management.
 - **TaskManager**: Ticket-based goal distribution.
-- **ConflictResolver & ConflictMerger**: Priority-weighted resource contention and semantic intent resolution (factoring in battery, role, and physical health).
+- **ConflictResolver & ConflictMerger**: Priority-weighted resource contention and semantic intent resolution. Factors in battery, role, physical health, and **Task-Based Seniority** (historical completion counts).
 - **SwarmGovernor**: Executive policy enforcement.
 - **Ledger**: Decentralized transaction tracking.
 
@@ -37,7 +37,7 @@ A framework for agents to exchange 'Experience Packets' including true **Neural 
 Simulates global "Cyber-Physical Shocks" (market crashes, solar flares) to stress-test agent swarms.
 
 ### 🏭 [VULCAN](./projects/vulcan/) (Advanced Manufacturing)
-Simulates industrial refinement, allowing agents to process raw Metal and Energy into high-value **Alloy**. Alloy is now the standard material for advanced construction, used by **Titans** with **Autonomous Infrastructure Logic** to build Research Labs and Relay Stations based on swarm needs.
+Simulates industrial refinement, allowing agents to process raw Metal and Energy into high-value **Alloy**. Alloy is now the standard material for advanced construction, used by **Titans** with **Autonomous Infrastructure Logic** to build Research Labs and Relay Stations. Titans now utilize real-time **Swarm-Aware Sensing** to assess agent health and communication coverage before deploying infrastructure.
 
 ### 🗼 [ORION](./projects/orion/) (Communication Infrastructure)
 Implements **RelayBeacon** units that boost the effective communication range of the HERMES PriorityMessageBus, allowing swarms to stay coordinated across massive 3D environments.
