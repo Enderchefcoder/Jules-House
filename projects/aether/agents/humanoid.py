@@ -55,7 +55,7 @@ class HumanoidAgent:
         self.battery = 100
         self.status = "Idle"
         self.is_3d = hasattr(world, 'depth')
-        self.brain = RobotBrain(input_size=8 if self.is_3d else 6)
+        self.brain = RobotBrain(input_size=10)
         self.optimizer = optim.Adam(self.brain.parameters(), lr=0.01)
         self.role = role
 
@@ -326,10 +326,18 @@ class HumanoidAgent:
         role_scaled = role_map.get(self.role, 0.0)
         balance_scaled = min(1.0, self.balance / 2000.0)
 
-        if self.is_3d:
-            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_scaled, balance_scaled, 0.0, 0.0])
-        else:
-            brain_input = torch.tensor([survival_need, profit_need, task_need, health_need, role_scaled, balance_scaled])
+        # 2026: Sentiment Integration
+        global_vibe = 0.5
+        market_sentiment = 0.5
+        if self.message_bus and hasattr(self.message_bus, 'global_state'):
+            global_vibe = self.message_bus.global_state.get("vibe", 0.5)
+            market_sentiment = self.message_bus.global_state.get("sentiment", 0.5)
+
+        brain_input = torch.tensor([
+            survival_need, profit_need, task_need, health_need,
+            role_scaled, balance_scaled, global_vibe, market_sentiment,
+            0.0, 0.0
+        ])
 
         self.last_state = brain_input
 

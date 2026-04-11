@@ -1,13 +1,27 @@
 import random
 
 class Market:
-    """A central market that tracks resource prices."""
+    """A central market that tracks resource prices with Sentiment Integration."""
     def __init__(self):
-        self.resources = {"Metal": 50, "Energy": 20, "Data": 100}
+        self.resources = {"Metal": 50, "Energy": 20, "Data": 100, "Alloy": 150}
         self.history = {res: [val] for res, val in self.resources.items()}
+        self.market_sentiment = 0.5 # 0.0 to 1.0
 
     def get_price(self, resource):
-        return self.resources.get(resource, 0)
+        # Apply sentiment modifier: high sentiment (optimism) lowers prices slightly (abundance mindset)
+        # low sentiment (panic) increases prices (scarcity mindset)
+        sentiment_mod = 1.5 - self.market_sentiment
+        return round(self.resources.get(resource, 0) * sentiment_mod, 2)
+
+    def update_sentiment(self, global_vibe_score, agent_stress_levels=None):
+        """Updates market sentiment based on ARGUS and agent feedback."""
+        if agent_stress_levels:
+            avg_stress = sum(agent_stress_levels) / len(agent_stress_levels)
+        else:
+            avg_stress = 0.5
+
+        # Sentiment is 60% global vibe, 40% inverse agent stress
+        self.market_sentiment = (global_vibe_score * 0.6) + ((1.0 - avg_stress) * 0.4)
 
     def fluctuate(self):
         """Simulates market price changes."""

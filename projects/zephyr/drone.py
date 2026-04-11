@@ -16,7 +16,7 @@ class DroneAgent:
         self.status = "Idling"
         self.role = "Drone"
         # Drones use a simpler input for now or match 3D brain size
-        self.brain = RobotBrain(input_size=8) # Match 3D brain size
+        self.brain = RobotBrain(input_size=10) # Match 3D brain size
         self.view_distance = 5 # Can see 5 units in all directions
         self.message_bus = None
         self.mapped_area = set()

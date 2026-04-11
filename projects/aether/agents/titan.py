@@ -6,8 +6,8 @@ class HumanoidTitan(HumanoidAgent):
     A massive, high-capacity humanoid agent designed for construction.
     Consumes more energy but can carry significantly more and build infrastructure.
     """
-    def __init__(self, name, world, position=(0,0,0), role="Titan"):
-        super().__init__(name, world, position, role=role)
+    def __init__(self, name, world, position=(0,0,0), market=None, message_bus=None, role="Titan"):
+        super().__init__(name, world, position, market=market, message_bus=message_bus, role=role)
         self.battery_cost = 15 # Higher consumption
         self.inventory_capacity = 50 # Massive capacity
         self.build_materials = {"Metal": 20, "Alloy": 5} # Cost to build an outpost
