@@ -372,9 +372,37 @@ class HumanoidAgent:
 
         self.last_state = brain_input
 
+        # 2026: Local Sensory Integration (Vibe/Mood)
+        sensory_vibe = 0.5
+        if self.sensory_system:
+            # Simulate a quick capture of the environment's mood
+            # In a real sim, we'd pass an actual image path
+            packet = self.sensory_system.capture_observation("visual/aether_complex_v7.png", "steady_hum")
+            if packet:
+                mood = packet.get("mood_classification", "Neutral")
+                # Map mood to a scalar
+                mood_map = {
+                    "Environmental Chaos / Sensory Overload": 0.0,
+                    "Void-Like / Total Sensory Deprivation": 0.1,
+                    "CRITICAL: High Intensity / Immediate Alert": 0.2,
+                    "Gloomy / Low Energy": 0.3,
+                    "Tense / Shadowed Movement": 0.4,
+                    "Neutral / Stable": 0.5,
+                    "Moderate Intensity / Active": 0.7,
+                    "Serene / High Visibility": 0.9,
+                    "Ethereal / Overexposed Serenity": 1.0
+                }
+                sensory_vibe = mood_map.get(mood, 0.5)
+
+        # Update input vector with sensory vibe
+        brain_input[8] = sensory_vibe
+
         # HYDRA Offloading logic: Call remote compute if battery is low
         if self.battery < 40 and self.brain_distributor:
-            self.brain_distributor.request_inference(self.name, brain_input)
+            success = self.brain_distributor.request_inference(self.name, brain_input)
+            if success:
+                # RL Reward for successful offloading
+                self.reward_feedback(0.2, self.last_decision_idx)
             # print(f"[{self.name}] HYDRA: Offloaded inference to NEXUS.")
 
         decision_weights = self.brain.forward(brain_input)
@@ -422,6 +450,18 @@ class HumanoidAgent:
                 self.current_path = []
                 self.current_target = None
                 return
+
+            # Role-Specific Battery Overrides
+            critical_battery = 20
+            if self.role == "Titan":
+                critical_battery = 35 # Heavy units need more buffer
+            elif self.role == "Scout":
+                critical_battery = 15 # Efficient units can push further
+
+            if self.battery < critical_battery and charger_pos:
+                if target != charger_pos:
+                    target = charger_pos
+                    self.current_path = [] # Reset path to charger
 
             if target != self.current_target or not self.current_path:
                 self.current_target = target
