@@ -17,7 +17,7 @@ class SwarmFirewall:
             r"(\d{5,})"          # Anomalous large numbers (overflow attempts)
         ]
 
-    def validate_message(self, sender, content, msg_type):
+    def validate_message(self, sender, content, msg_type, governor=None):
         """Checks if a message is safe to process."""
         if sender in self.blocked_senders:
             return False
@@ -27,6 +27,8 @@ class SwarmFirewall:
             if re.search(pattern, str_content):
                 self.log_threat(sender, "Malicious Pattern Detected", content)
                 self.blocked_senders.add(sender)
+                if governor and hasattr(governor, 'quarantine_agent'):
+                    governor.quarantine_agent(sender)
                 return False
 
         # Type-specific validation
@@ -34,6 +36,8 @@ class SwarmFirewall:
             # Content should be (item, (x, y, z))
             if not isinstance(content, (list, tuple)) or len(content) != 2:
                 self.log_threat(sender, "Malformed Resource Packet", content)
+                if governor and hasattr(governor, 'quarantine_agent'):
+                    governor.quarantine_agent(sender)
                 return False
 
         # Behavioral Analysis: Spam Detection
@@ -49,6 +53,8 @@ class SwarmFirewall:
         if len(self.sender_history[sender]) > 5: # Threshold: 5 msgs / 10s
             self.log_threat(sender, "Spamming Detected", content)
             self.blocked_senders.add(sender)
+            if governor and hasattr(governor, 'quarantine_agent'):
+                governor.quarantine_agent(sender)
             return False
 
         return True

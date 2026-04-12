@@ -75,11 +75,19 @@ def run_integrated_sim():
     ]
     compute_market = ComputeMarket(nodes)
 
-    # 4. Initialize Simulation Engine
-    engine = SimulationEngine(world)
-
-    # 5. Initialize Core Systems (TeamWorks, HELIOS, Swarm Consensus, ARGUS, ATHENA)
+    # 4. Initialize Core Systems (TeamWorks, HELIOS, Swarm Consensus, ARGUS, ATHENA)
     market = Market()
+
+    # 5. Initialize Simulation Engine with shared systems
+    engine = SimulationEngine(world)
+    # Inject shared market
+    engine.market = market
+
+    governor = SwarmGovernor(engine)
+    # Re-initialize HERMES with Governor
+    from projects.hermes.bus import PriorityMessageBus
+    engine.message_bus = PriorityMessageBus(governor=governor)
+
     org_chart = OrgChart()
     conflict_resolver = ConflictResolver()
     conflict_merger = ConflictMerger() # TeamWorks Intent Merging
@@ -87,7 +95,6 @@ def run_integrated_sim():
     # 2026: Shared secret for VERITAS integrity
     shared_secret = b"aether-swarm-2026-integrity-key"
     consensus_manager = ConsensusManager(engine, secret_key=shared_secret)
-    governor = SwarmGovernor(engine)
     ledger = Ledger()
     energy_grid = EnergyGrid()
     solar_model = SolarModel()
@@ -106,7 +113,7 @@ def run_integrated_sim():
     relay_2 = RelayBeacon((5, 15, 10))
     engine.message_bus.add_relay(relay_1)
     engine.message_bus.add_relay(relay_2)
-    brain_distributor = BrainDistributor(compute_market) # HYDRA
+    brain_distributor = BrainDistributor(compute_market, governor=governor) # HYDRA
 
     # 6. Add Specialized Agents - Scaled Swarm with TITAN, ZEPHYR, and NEMESIS Rogue
     # Pass brain_distributor, market, and shared_secret to humanoid agents
@@ -254,8 +261,8 @@ def run_integrated_sim():
         # Security Check: AEGIS + Governor Integration
         if i % 5 == 0:
             for rogue in [a for a in agents if a.role == "Rogue"]:
-                if rogue.name in firewall.blocked_senders:
-                    governor.quarantine_agent(rogue.name)
+                # Pass governor to firewall for auto-quarantine
+                firewall.validate_message(rogue.name, "MALICIOUS PACKET", "resource_discovery", governor=governor)
 
     # 8. Final Output
     render_grid_3d(world, filename="visual/aether_complex_v7.png")
