@@ -20,15 +20,17 @@ class RogueAgent:
         self.balance = 1000.0
 
     def inject_false_data(self):
-        """Broadcasts fake resource locations to the MessageBus to confuse Gatherers."""
+        """Broadcasts multiple fake resource locations to the MessageBus to confuse Gatherers."""
         if self.message_bus:
-            # Generate a random coordinate that is likely empty or an obstacle
-            fake_pos = (random.randint(0, self.world.width-1),
-                        random.randint(0, self.world.height-1),
-                        random.randint(0, self.world.depth-1))
-            res_type = random.choice(["Metal", "Data"])
-            self.message_bus.post(self.name, (res_type, fake_pos), type="resource_discovery", priority="High")
-            print(f"[NEMESIS-{self.name}] Injected FALSE discovery: {res_type} at {fake_pos}")
+            for _ in range(5):
+                # Generate a random coordinate that is likely empty or an obstacle
+                fake_pos = (random.randint(0, self.world.width-1),
+                            random.randint(0, self.world.height-1),
+                            random.randint(0, self.world.depth-1))
+                res_type = random.choice(["Metal", "Data"])
+                self.message_bus.post(self.name, (res_type, fake_pos), type="resource_discovery", priority="High")
+                # print(f"[NEMESIS-{self.name}] Injected FALSE discovery: {res_type} at {fake_pos}")
+            print(f"[NEMESIS-{self.name}] Injected 5 FALSE discovery packets.")
 
     def drain_grid(self):
         """Attempts to rapidly recharge and discharge to manipulate energy prices (simulated)."""

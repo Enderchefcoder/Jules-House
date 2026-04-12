@@ -127,8 +127,18 @@ class HumanoidTitan(HumanoidAgent):
             if need_health and self.build_research_lab():
                 return
 
-            if need_relay and self.build_relay_station():
-                return
+            if need_relay:
+                if self.build_relay_station():
+                    return
+                else:
+                    # Drive toward a location lacking coverage
+                    # For simulation, we'll pick a random edge of the current known coverage
+                    # or just a distant point if no relays exist
+                    if not self.message_bus or not self.message_bus.relays:
+                         self.current_target = (10, 10, 10)
+                    else:
+                         # Pick a position far from any relay
+                         self.current_target = (random.randint(0, 19), random.randint(0, 19), random.randint(0, 19))
 
             # 3. Default to general outpost if materials allow
             if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \

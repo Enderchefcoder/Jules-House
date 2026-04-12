@@ -7,6 +7,14 @@ class SwarmGovernor:
         self.engine = engine
         self.active_constraints = {}
         self.quarantined_agents = set()
+        self.compute_quota = 100
+
+    def set_compute_quota(self, val):
+        self.compute_quota = val
+        print(f"[GOVERNOR] Compute Quota set to {val}.")
+
+    def is_quarantined(self, agent_name):
+        return agent_name in self.quarantined_agents
 
     def apply_policy(self, decision, winner):
         """Applies a policy based on a consensus decision."""

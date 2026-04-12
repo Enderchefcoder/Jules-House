@@ -10,8 +10,12 @@ class HazardManager:
 
     def spawn_hazard(self):
         """Randomly places a hazard in the world."""
-        size = (self.world.width, self.world.height, self.world.depth if self.is_3d else 0)
-        pos = tuple(random.randint(0, s - 1) if s > 0 else 0 for s in size)
+        if self.is_3d:
+            size = (self.world.width, self.world.height, self.world.depth)
+            pos = tuple(random.randint(0, s - 1) for s in size)
+        else:
+            size = (self.world.width, self.world.height)
+            pos = tuple(random.randint(0, s - 1) for s in size)
 
         # Don't overwrite existing items or agents
         if self.world.get_item(pos) is None and pos not in getattr(self.world, 'agents', {}):

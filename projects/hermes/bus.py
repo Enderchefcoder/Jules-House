@@ -5,7 +5,7 @@ class PriorityMessageBus:
     A scalable, priority-based message bus for the AETHER ecosystem.
     Supports publish-subscribe and priority levels (Emergency, High, Normal, Low).
     """
-    def __init__(self):
+    def __init__(self, governor=None):
         self.queues = collections.defaultdict(list)
         self.subscribers = collections.defaultdict(list)
         self.collective_memory = {} # {resource_type: [pos1, pos2, ...]}
@@ -13,6 +13,7 @@ class PriorityMessageBus:
         self.topic_keys = {"Emergency": "SECURE-KEY-2026", "Internal": "SWARM-ONLY"}
         self.relays = [] # List of ORION RelayBeacons
         self.global_state = {"vibe": 0.5, "sentiment": 0.5} # 2026 Sentiment Integration
+        self.governor = governor
 
     def add_relay(self, relay):
         self.relays.append(relay)
@@ -21,6 +22,12 @@ class PriorityMessageBus:
         self.subscribers[topic].append(agent_name)
 
     def post(self, sender, content, type="Normal", priority="Normal", signed_by=None, origin_pos=None):
+        # 2026 Security Filter: Check Governor's Quarantine List
+        if self.governor and hasattr(self.governor, 'is_quarantined'):
+            if self.governor.is_quarantined(sender):
+                # print(f"[HERMES] BLOCKED message from quarantined agent: {sender}")
+                return
+
         msg = {
             "sender": sender,
             "content": content,
