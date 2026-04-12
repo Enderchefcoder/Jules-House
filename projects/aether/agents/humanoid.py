@@ -24,9 +24,9 @@ except ImportError:
 
 class SensorySystem:
     """An integrated sensory system that captures and signs agent observations."""
-    def __init__(self, agent_name):
+    def __init__(self, agent_name, secret_key=None):
         self.encoder = MultimodalEncoder() if MultimodalEncoder else None
-        self.integrity = IntegrityManager() if IntegrityManager else None
+        self.integrity = IntegrityManager(secret_key=secret_key) if IntegrityManager else None
         self.agent_name = agent_name
         self.last_packet = None
 
@@ -48,7 +48,7 @@ class SensorySystem:
 class HumanoidAgent:
     """A humanoid robot agent for the AETHER simulation with RL and infrastructure hooks."""
 
-    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None, role="Generalist", brain_distributor=None):
+    def __init__(self, name, world, position=(0, 0), market=None, message_bus=None, role="Generalist", brain_distributor=None, secret_key=None):
         self.name = name
         self.world = world
         self.position = position
@@ -79,7 +79,7 @@ class HumanoidAgent:
         self.task_manager = None
         self.brain_distributor = brain_distributor
         self.shared_resource_locations = {} # {resource_type: [pos1, pos2]}
-        self.sensory_system = SensorySystem(self.name)
+        self.sensory_system = SensorySystem(self.name, secret_key=secret_key)
         self.health_monitor = HealthMonitor(self.name) if HealthMonitor else None
         self.firewall = SwarmFirewall() if SwarmFirewall else None
         self.tasks_completed = 0
@@ -221,6 +221,37 @@ class HumanoidAgent:
                     min_dist = dist
                     nearest = pos
         return nearest
+
+    def decide_vote(self, topic, options):
+        """
+        Participates in swarm consensus using heuristics and global vibes.
+        Returns (vote_value, signature).
+        """
+        # Heuristics for choice
+        if topic == "Energy vs Research":
+            if self.battery < 40:
+                vote = "Energy"
+            elif self.role == "Titan":
+                vote = "Research"
+            else:
+                vote = random.choice(options)
+        elif topic == "Market Strategy":
+            if self.role == "Trader" or self.balance > 1000:
+                vote = "Profit Optimization" if "Profit Optimization" in options else options[0]
+            else:
+                vote = "Resource Stability" if "Resource Stability" in options else options[0]
+        else:
+            vote = random.choice(options)
+
+        # Sign the vote if IntegrityManager is available
+        signature = None
+        if self.sensory_system and self.sensory_system.integrity:
+            import json
+            # Use sort_keys=True for deterministic serialization
+            vote_data = json.dumps({"agent": self.name, "vote": vote, "topic": topic}, sort_keys=True)
+            signature = self.sensory_system.integrity.sign_data(vote_data)
+
+        return vote, signature
 
     def process_messages(self):
         """Checks the message bus for updates from other agents with ORION range logic."""

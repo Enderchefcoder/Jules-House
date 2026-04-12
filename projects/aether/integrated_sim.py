@@ -83,7 +83,10 @@ def run_integrated_sim():
     org_chart = OrgChart()
     conflict_resolver = ConflictResolver()
     conflict_merger = ConflictMerger() # TeamWorks Intent Merging
-    consensus_manager = ConsensusManager(engine)
+
+    # 2026: Shared secret for VERITAS integrity
+    shared_secret = b"aether-swarm-2026-integrity-key"
+    consensus_manager = ConsensusManager(engine, secret_key=shared_secret)
     governor = SwarmGovernor(engine)
     ledger = Ledger()
     energy_grid = EnergyGrid()
@@ -106,15 +109,15 @@ def run_integrated_sim():
     brain_distributor = BrainDistributor(compute_market) # HYDRA
 
     # 6. Add Specialized Agents - Scaled Swarm with TITAN, ZEPHYR, and NEMESIS Rogue
-    # Pass brain_distributor and market to humanoid agents
+    # Pass brain_distributor, market, and shared_secret to humanoid agents
     agents = [
-        HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
-        HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
-        HumanoidAgent("Gatherer-Beta", world, position=(10, 10, 10), role="Gatherer", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
-        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
-        HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
-        HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor),
-        HumanoidTitan("Titan-01", world, position=(5, 5, 5), market=market, message_bus=engine.message_bus),
+        HumanoidAgent("Scout-Alpha", world, position=(1, 1, 1), role="Scout", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
+        HumanoidAgent("Scout-Delta", world, position=(18, 18, 18), role="Scout", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
+        HumanoidAgent("Gatherer-Beta", world, position=(10, 10, 10), role="Gatherer", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
+        HumanoidAgent("Gatherer-Epsilon", world, position=(2, 17, 3), role="Gatherer", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
+        HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
+        HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
+        HumanoidTitan("Titan-01", world, position=(5, 5, 5), market=market, message_bus=engine.message_bus, secret_key=shared_secret),
         DroneAgent("Zephyr-01", world, position=(10, 10, 19)), # ZEPHYR Drone
         DroneAgent("Zephyr-02", world, position=(5, 5, 15)),
         RogueAgent("NEMESIS-Rogue", world, position=(0, 0, 19)) # NEMESIS Rogue
@@ -218,6 +221,25 @@ def run_integrated_sim():
             if len(valid_agents) >= 3:
                 competing_agents = random.sample(valid_agents, 3)
                 winner = conflict_merger.resolve_action_conflict(competing_agents, "Task Claim")
+
+        # AETHER: Swarm Consensus Phase (Project VERITAS)
+        if i % 50 == 0:
+            topic = random.choice(["Energy vs Research", "Market Strategy"])
+            options = ["Energy", "Research"] if topic == "Energy vs Research" else ["Profit Optimization", "Resource Stability"]
+            consensus_manager.initiate_vote(topic, options)
+
+            for agent in [a for a in agents if hasattr(a, 'decide_vote')]:
+                vote, signature = agent.decide_vote(topic, options)
+                consensus_manager.cast_vote(agent.name, vote, signature)
+
+            winner = consensus_manager.tally_results()
+            if winner:
+                print(f"[Simulation] Swarm Consensus reached: {winner}. Adjusting global policy.")
+                if winner == "Energy":
+                    energy_grid.base_price *= 0.9
+                elif winner == "Research":
+                    # Potentially boost research lab output
+                    pass
 
         # VULCAN: Process foundries
         if i % 25 == 0:
