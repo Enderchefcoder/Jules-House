@@ -179,32 +179,34 @@ def run_integrated_sim():
 
         # VULCAN: Deep Integration - Check for agents at foundries
         for agent in agents:
-            if hasattr(agent, 'inventory') and agent.inventory.get("Metal", 0) > 0:
+            if hasattr(agent, 'inventory'):
+                # Deposit Metal
+                if agent.inventory.get("Metal", 0) > 0:
+                    if agent.position == foundry_1.position:
+                        m = agent.inventory["Metal"]
+                        foundry_1.deposit_resources(metal=m, energy=10) # Simulated energy deposit
+                        agent.inventory["Metal"] = 0
+                        print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 1.")
+                    elif agent.position == foundry_2.position:
+                        m = agent.inventory["Metal"]
+                        foundry_2.deposit_resources(metal=m, energy=10)
+                        agent.inventory["Metal"] = 0
+                        print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 2.")
+
+                # Alloy collection logic - Enhanced for robustness
+                current_foundry = None
                 if agent.position == foundry_1.position:
-                    m = agent.inventory["Metal"]
-                    foundry_1.deposit_resources(metal=m, energy=10) # Simulated energy deposit
-                    agent.inventory["Metal"] = 0
-                    print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 1.")
+                    current_foundry = foundry_1
                 elif agent.position == foundry_2.position:
-                    m = agent.inventory["Metal"]
-                    foundry_2.deposit_resources(metal=m, energy=10)
-                    agent.inventory["Metal"] = 0
-                    print(f"[VULCAN] {agent.name} deposited {m} Metal at Foundry 2.")
+                    current_foundry = foundry_2
 
-        # Alloy collection logic - Enhanced for robustness
-        current_foundry = None
-        if agent.position == foundry_1.position:
-            current_foundry = foundry_1
-        elif agent.position == foundry_2.position:
-            current_foundry = foundry_2
-
-        if current_foundry and current_foundry.alloy_output > 0:
-            current_inv = sum(agent.inventory.values())
-            space = agent.inventory_capacity - current_inv
-            if space > 0:
-                collected = current_foundry.collect_alloy(min(space, current_foundry.alloy_output))
-                agent.inventory["Alloy"] = agent.inventory.get("Alloy", 0) + collected
-                print(f"[VULCAN] {agent.name} collected {collected} ALLOY.")
+                if current_foundry and current_foundry.alloy_output > 0:
+                    current_inv = sum(agent.inventory.values())
+                    space = agent.inventory_capacity - current_inv
+                    if space > 0:
+                        collected = current_foundry.collect_alloy(min(space, current_foundry.alloy_output))
+                        agent.inventory["Alloy"] = agent.inventory.get("Alloy", 0) + collected
+                        print(f"[VULCAN] {agent.name} collected {collected} ALLOY.")
 
         # Periodically simulate sensory capture (Feel AI + VERITAS)
         if i % 10 == 0:
@@ -249,9 +251,13 @@ def run_integrated_sim():
                     pass
 
         # VULCAN: Process foundries
-        if i % 25 == 0:
+        if i % 10 == 0:
             foundry_1.process()
             foundry_2.process()
+
+        # NEXUS: Process compute nodes to complete tasks and free up resources
+        for node in nodes:
+            node.complete_tasks()
 
         # HYDRA: Distributed Inference requests (Now mostly handled within HumanoidAgent.perform_task)
         if i % 30 == 0:

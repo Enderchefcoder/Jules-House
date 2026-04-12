@@ -63,6 +63,20 @@ def generate_deep_thoughts(count=1000):
             "answer": "<think>The April 13th update to the BrainDistributor introduced a 'quota' attribute. Every successful remote inference request decrements this global counter, ensuring compute resources are prioritized for critical decisions during scarcity shocks.</think> Project HYDRA now features a robust 'Global Compute Quota' system within the BrainDistributor. This allows the SwarmGovernor to regulate the total volume of remote brain inference during 'Compute Shortage' events. Agents must now manage their local battery more conservatively as they can no longer rely on unlimited remote compute, forcing the swarm to adopt more energy-efficient local heuristics when the global quota is exhausted.",
             "source": "HYDRA Resource Management v2",
             "date": "2026-04-13"
+        },
+        {
+            "id": "DT-2026-04-14-TECH-001",
+            "question": "How does the 'Sensory Vibe Integration' enhance RobotBrain decision-making on April 14th?",
+            "answer": "<think>The April 14th update introduced a 9th input to the RobotBrain: the local sensory 'mood' captured by the SensorySystem. This allows agents to adjust their behavior based on localized environmental vibes (e.g., Serenity vs. Chaos) rather than just global ARGUS metrics.</think> Sensory Vibe Integration marks the transition from global to local emotional awareness in the AETHER ecosystem. By feeding a localized 'mood' scalar—derived from real-time vision and audio analysis via the MultimodalEncoder—directly into the agent's neural network, the swarm can now exhibit more nuanced behavioral shifts. For instance, an agent in a 'Chaotic' sector may prioritize survival maneuvers even if the global ARGUS vibe is 'Neutral', leading to significantly higher localized resilience during environmental shocks.",
+            "source": "AETHER Sensory Specs v6",
+            "date": "2026-04-14"
+        },
+        {
+            "id": "DT-2026-04-14-TECH-002",
+            "question": "Explain the role-specific battery thresholds implemented for AETHER agents.",
+            "answer": "<think>On April 14th, battery-sensitive overrides were updated to be role-specific. Titans now have a 35% critical threshold, while Scouts can push down to 15%.</think> Role-specific battery thresholds optimize the operational longevity of the swarm by acknowledging the unique energy profiles of different agent classes. Titans, with their high-mass construction requirements, now maintain a larger energy buffer (35%) to ensure they don't become stranded during complex infrastructure builds. Conversely, Scouts utilize their lighter frames to push further into the environment with a 15% threshold, maximizing exploration range before returning to a charger, thereby increasing the overall efficiency of the swarm's resource discovery network.",
+            "source": "AETHER Agent Heuristics v8",
+            "date": "2026-04-14"
         }
     ]
     entries.extend(base_entries)
@@ -90,11 +104,11 @@ def generate_deep_thoughts(count=1000):
     for i in range(len(entries) + 1, count + 1):
         sub = random.choice(subsystems)
         concept = random.choice(technical_concepts)
-        entry_id = f"DT-2026-04-13-TECH-{i:04d}"
+        entry_id = f"DT-2026-04-14-TECH-{i:04d}"
 
         question = f"How does {sub} implement {concept} to ensure 2026-grade autonomous stability?"
 
-        think = f"<think>Analyzing the integration of {sub} with {concept} on April 13th. Step {i} involves checking for {random.choice(['latency', 'energy efficiency', 'data integrity', 'adversarial resilience'])}. The {sub.split()[-1]} logic must handle {random.choice(['multimodal inputs', 'economic volatility', 'hardware failure'])}.</think>"
+        think = f"<think>Analyzing the integration of {sub} with {concept} on April 14th. Step {i} involves checking for {random.choice(['latency', 'energy efficiency', 'data integrity', 'adversarial resilience'])}. The {sub.split()[-1]} logic must handle {random.choice(['multimodal inputs', 'economic volatility', 'hardware failure'])}.</think>"
 
         answer = f"{think} The {sub} utilizes a specialized architecture where {concept} is prioritized during high-load simulation cycles. By decoupling {random.choice(['sensing', 'processing', 'acting'])} from {random.choice(['centralized control', 'local memory', 'global state'])}, the system achieves a 2026-standard of robustness, allowing the {sub.split()[-1]} to maintain operational continuity even during {random.choice(['Solar Flares', 'Acid Rain', 'Compute Shortages', 'Market Crashes'])}."
 
@@ -103,7 +117,7 @@ def generate_deep_thoughts(count=1000):
             "question": question,
             "answer": answer,
             "source": "Technical Archive 2026",
-            "date": "2026-04-13"
+            "date": "2026-04-14"
         })
 
     return entries
@@ -132,6 +146,13 @@ def generate_modern_day(count=1000):
             "answer": "<think>Following the April 13th deployment of automated swarm quarantine, international observers have noted a 60% decrease in the effectiveness of state-sponsored cyber-physical disruption of autonomous infrastructure.</think> The deployment of 'Automated Quarantine' protocols has fundamentally shifted the landscape of digital sovereignty. By allowing autonomous agent swarms to self-identify and isolate adversarial actors in real-time, the AETHER ecosystem has set a new global standard for infrastructure resilience. This has led to increased investment in agent-managed zones across the Pacific Rim, as governments seek to shield their energy grids from the increasingly sophisticated 'Rogue Agent' attacks characterizing the 2026 digital trust crisis.",
             "source": "Global Security Pulse",
             "date": "2026-04-13"
+        },
+        {
+            "id": "MD-2026-04-14-GLOBAL-001",
+            "question": "What is the impact of localized 'Sensory Vibe' technology on 2026 urban autonomous zones?",
+            "answer": "<think>Reports from April 14th indicate that cities using localized sensory vibe processing in their maintenance swarms are seeing a 25% faster response time to micro-shocks. Global observers are calling this 'Emotional Localization'.</think> The introduction of localized 'Sensory Vibe' processing has ushered in the era of Emotional Localization in urban autonomous management. Cities across the European Union are reporting that maintenance swarms equipped with this technology can detect and react to localized 'Environmental Chaos'—such as sudden traffic congestion or infrastructure failures—well before global monitoring systems can register the event. This decentralized emotional awareness allows for real-time, hyper-local adaptation, making 2026 urban environments more responsive and resilient than ever before.",
+            "source": "2026 Urban Resilience Report",
+            "date": "2026-04-14"
         }
     ]
     entries.extend(base_entries)
@@ -150,11 +171,11 @@ def generate_modern_day(count=1000):
     for i in range(len(entries) + 1, count + 1):
         region = random.choice(regions)
         topic = random.choice(topics)
-        entry_id = f"MD-2026-04-13-NEWS-{i:04d}"
+        entry_id = f"MD-2026-04-14-NEWS-{i:04d}"
 
         question = f"What was the impact of {topic} developments in the {region} during Q2 2026?"
 
-        think = f"<think>Reviewing news dispatches from {region} regarding {topic} on April 13th. Reports from {random.choice(['local agents', 'government observers', 'industrial foundries'])} suggest a {random.choice(['paradigm shift', 'temporary setback', 'major breakthrough'])}.</think>"
+        think = f"<think>Reviewing news dispatches from {region} regarding {topic} on April 14th. Reports from {random.choice(['local agents', 'government observers', 'industrial foundries'])} suggest a {random.choice(['paradigm shift', 'temporary setback', 'major breakthrough'])}.</think>"
 
         answer = f"{think} The {region} has seen significant movement in {topic} as of mid-April 2026. Experts noted that {random.choice(['infrastructure upgrades', 'policy shifts', 'technological convergence'])} led to a {random.choice(['30%', '50%', '100%'])} increase in {random.choice(['swarm coordination', 'economic stability', 'energy efficiency'])}. This trend highlights the growing importance of {random.choice(['autonomous governance', 'distributed intelligence', 'resource refinement'])} in the modern geopolitical landscape."
 
@@ -163,7 +184,7 @@ def generate_modern_day(count=1000):
             "question": question,
             "answer": answer,
             "source": "2026 Global Dispatch",
-            "date": "2026-04-13"
+            "date": "2026-04-14"
         })
 
     return entries
@@ -172,5 +193,5 @@ if __name__ == "__main__":
     dt_entries = generate_deep_thoughts(10000)
     md_entries = generate_modern_day(10000)
 
-    scale_corpus("projects/deep_thoughts/entries_2026_apr_13.json", dt_entries)
-    scale_corpus("projects/modern_day/entries_2026_apr_13.json", md_entries)
+    scale_corpus("projects/deep_thoughts/entries_2026_apr_14.json", dt_entries)
+    scale_corpus("projects/modern_day/entries_2026_apr_14.json", md_entries)
