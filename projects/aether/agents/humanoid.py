@@ -2,6 +2,7 @@ import random
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
+import re
 from utils.pathfinding import a_star
 from core.brain import RobotBrain
 
@@ -15,6 +16,7 @@ try:
     from veritas.integrity import IntegrityManager
     from aegis.firewall import SwarmFirewall
     from vita.health import HealthMonitor
+    from teamworks.core.task_manager import TaskStatus
 except ImportError:
     Market = None
     MultimodalEncoder = None
@@ -278,6 +280,17 @@ class HumanoidAgent:
         # 0. Process swarm communication
         self.process_messages()
 
+        # 0.1 Check for assigned TaskTickets (Project TeamWorks)
+        assigned_target = None
+        assigned_ticket = None
+        if self.task_manager:
+            tickets = self.task_manager.list_tickets_by_agent(self.name)
+            if tickets:
+                assigned_ticket = tickets[0] # Handle one at a time
+                match = re.search(r"\((\d+),\s*(\d+),\s*(\d+)\)", assigned_ticket.description)
+                if match:
+                    assigned_target = tuple(map(int, match.groups()))
+
         # 1. Check current tile for collection or interaction
         current_item = self.world.get_item(self.position)
 
@@ -298,6 +311,11 @@ class HumanoidAgent:
                 self.tasks_completed += 1
                 if hasattr(self.world, 'remove_item'):
                     self.world.remove_item(self.position)
+
+                # Complete TaskTicket if this was the target
+                if assigned_ticket and assigned_target == self.position:
+                    assigned_ticket.update_status(TaskStatus.COMPLETE, f"Resource collected by {self.name}")
+                    print(f"[{self.name}] COMPLETED assigned task: {assigned_ticket.id}")
 
                 # RL Reward for collection
                 if hasattr(self, 'last_decision_idx'):
@@ -437,6 +455,11 @@ class HumanoidAgent:
         if options:
             options.sort(key=lambda x: x[0], reverse=True)
             target = options[0][1]
+
+            # 2026: Prioritize Assigned Task over general scavenging/profit
+            if assigned_target:
+                target = assigned_target
+                # print(f"[{self.name}] Navigating to ASSIGNED task at {target}.")
 
             # Absolute Overrides
             if self.battery < 20 and charger_pos:

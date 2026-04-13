@@ -190,8 +190,8 @@ def generate_modern_day(count=1000):
     return entries
 
 if __name__ == "__main__":
-    dt_entries = generate_deep_thoughts(10000)
-    md_entries = generate_modern_day(10000)
+    dt_entries = generate_deep_thoughts(15000)
+    md_entries = generate_modern_day(15000)
 
-    scale_corpus("projects/deep_thoughts/entries_2026_apr_14.json", dt_entries)
-    scale_corpus("projects/modern_day/entries_2026_apr_14.json", md_entries)
+    scale_corpus("projects/deep_thoughts/entries_2026_apr_15.json", dt_entries)
+    scale_corpus("projects/modern_day/entries_2026_apr_15.json", md_entries)

@@ -1,6 +1,7 @@
 import time
 import sys
 import os
+import re
 
 # Try to import market from chronos
 try:
@@ -46,6 +47,13 @@ class SimulationEngine:
                 self.heartbeat_manager.register_agent(agent.name)
             return True
         return False
+
+    def _get_pos_from_ticket(self, ticket):
+        """Extracts coordinates from a task description using regex."""
+        match = re.search(r"\((\d+),\s*(\d+),\s*(\d+)\)", ticket.description)
+        if match:
+            return tuple(map(int, match.groups()))
+        return None
 
     def step(self):
         """Executes a single step in the simulation."""
@@ -109,6 +117,26 @@ class SimulationEngine:
                     exists = any(t.title == title for t in self.task_manager.tickets.values())
                     if not exists:
                         self.task_manager.create_ticket(title, f"Retrieve {item_type} from coordinates {pos}", priority=2)
+
+            # Greedy Task Assignment: Assign open tickets to nearest idle agents
+            open_tickets = self.task_manager.list_open_tickets()
+            for ticket in open_tickets:
+                target_pos = self._get_pos_from_ticket(ticket)
+                if not target_pos: continue
+
+                # Find nearest idle/scavenging agent
+                best_agent = None
+                min_dist = float('inf')
+
+                for agent in self.agents:
+                    if hasattr(agent, 'status') and agent.status in ["Idle", "Idling"]:
+                        dist = sum(abs(a - b) for a, b in zip(agent.position, target_pos))
+                        if dist < min_dist:
+                            min_dist = dist
+                            best_agent = agent
+
+                if best_agent:
+                    self.task_manager.assign_ticket(ticket.id, best_agent.name)
 
         return True
 
