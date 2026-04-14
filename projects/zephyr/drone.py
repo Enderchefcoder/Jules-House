@@ -71,7 +71,7 @@ class DroneAgent:
         if dz != 0:
             self.move_3d(0, 0, dz)
 
-    def perform_task(self):
+    def perform_task(self, agents=None):
         """Mapping logic: move randomly or towards unmapped sectors."""
         # 1. Scan current location
         self.scan_environment()

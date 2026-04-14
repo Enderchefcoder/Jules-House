@@ -53,7 +53,7 @@ class RogueAgent:
             return True
         return False
 
-    def perform_task(self):
+    def perform_task(self, agents=None):
         """Rogue logic: Move randomly, inject data, and drain resources."""
         # 1. Malicious actions
         if random.random() < 0.3:

@@ -90,7 +90,7 @@ class SimulationEngine:
             if hasattr(agent, 'task_manager') and agent.task_manager is None:
                 agent.task_manager = self.task_manager
 
-            agent.perform_task()
+            agent.perform_task(self.agents)
 
         # Update hazards
         if self.hazard_manager:

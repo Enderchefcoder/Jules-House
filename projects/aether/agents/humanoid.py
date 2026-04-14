@@ -103,6 +103,27 @@ class HumanoidAgent:
                 self.brain.load_state_dict(current_weights)
             print(f"[{self.name}] Integrated Neural Distillation from {mentor_name}.")
 
+    def cooperative_repair(self, target_agent):
+        """
+        2026 Swarm Mutual Aid: Performs an emergency repair on a nearby peer.
+        Costs 100 credits and 5 Metal. Restores health via VITA 'QuickFix'.
+        """
+        if target_agent == self:
+            return False
+
+        dist = sum(abs(a - b) for a, b in zip(self.position, target_agent.position))
+        if dist > 1:
+            return False # Must be adjacent
+
+        if self.balance >= 100 and self.inventory.get("Metal", 0) >= 5:
+            if target_agent.health_monitor:
+                self.balance -= 100
+                self.inventory["Metal"] -= 5
+                target_agent.health_monitor.perform_repair("QuickFix")
+                print(f"[{self.name}] EMERGENT REPAIR performed on {target_agent.name}!")
+                return True
+        return False
+
     def reward_feedback(self, reward, target_idx):
         """Perform a single RL step based on a decision reward with battery-sensitive scaling."""
         if hasattr(self, 'last_state') and self.last_state is not None:
@@ -275,10 +296,20 @@ class HumanoidAgent:
                     self.shared_resource_locations[res_type].append(pos)
                     # print(f"{self.name} received broadcast: {res_type} at {pos}")
 
-    def perform_task(self):
+    def perform_task(self, agents=None):
         """Decides and performs an action based on state, battery, and RL feedback."""
         # 0. Process swarm communication
         self.process_messages()
+
+        # 0.0.1 Cooperative Repair Check: Can we help a nearby failing peer?
+        if agents:
+            for other in agents:
+                if other.name != self.name and hasattr(other, 'health_monitor') and other.health_monitor:
+                    dist = sum(abs(a - b) for a, b in zip(self.position, other.position))
+                    if dist <= 1 and other.health_monitor.get_overall_health() < 30:
+                        if self.cooperative_repair(other):
+                            self.status = f"Repaired {other.name}"
+                            return
 
         # 0.1 Check for assigned TaskTickets (Project TeamWorks)
         assigned_target = None
