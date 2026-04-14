@@ -78,24 +78,25 @@ class HumanoidTitan(HumanoidAgent):
     def scan_swarm_needs(self):
         """
         2026 Swarm-Aware Sensing: Titans assess environmental and agent states.
-        Returns a tuple (need_health, need_relay) based on real simulation data.
+        Returns a tuple (need_health, need_relay, critical_agent) based on real simulation data.
         """
         need_health = False
         need_relay = False
+        critical_agent = None
 
         # 1. Check health of nearby agents (Manhattan distance < 10)
-        nearby_agents = []
-        # We assume the engine or world allows discovery of other agents
-        # For simulation purposes, we'll check agents we know about via the message bus or world
         if hasattr(self.world, 'agents'):
-            for a_name, a_pos in self.world.agents.items():
-                if a_name != self.name:
+            for a_pos, agent in self.world.agents.items():
+                if agent.name != self.name:
                     dist = sum(abs(a - b) for a, b in zip(self.position, a_pos))
                     if dist < 10:
-                        # We'd ideally check their health, but we'll simulate observation
-                        # via a 40% probability that a nearby agent needs help if we haven't built a lab lately
-                        need_health = True
-                        break
+                        if hasattr(agent, 'health_monitor') and agent.health_monitor:
+                            health = agent.health_monitor.get_overall_health()
+                            if health < 50:
+                                need_health = True
+                                if health < 30:
+                                    critical_agent = agent
+                                    break # Found someone who needs immediate help
 
         # 2. Check communication coverage (Project ORION)
         if self.message_bus and hasattr(self.message_bus, 'relays'):
@@ -109,9 +110,34 @@ class HumanoidTitan(HumanoidAgent):
             if not coverage:
                 need_relay = True
 
-        return need_health, need_relay
+        return need_health, need_relay, critical_agent
 
-    def perform_task(self):
+    def cooperative_repair(self, target_agent):
+        """
+        HumanoidTitan Overload: Superior repair logic using Alloy.
+        Costs 100 credits and 2 Alloy (or 5 Metal if no Alloy).
+        """
+        if target_agent == self:
+            return False
+
+        dist = sum(abs(a - b) for a, b in zip(self.position, target_agent.position))
+        if dist > 1:
+            return False
+
+        if self.balance >= 100:
+            if self.inventory.get("Alloy", 0) >= 2:
+                if target_agent.health_monitor:
+                    self.balance -= 100
+                    self.inventory["Alloy"] -= 2
+                    target_agent.health_monitor.perform_repair("Full")
+                    print(f"[TITAN] SUPERIOR REPAIR performed on {target_agent.name} using ALLOY!")
+                    return True
+            elif self.inventory.get("Metal", 0) >= 5:
+                # Fallback to standard repair
+                return super().cooperative_repair(target_agent)
+        return False
+
+    def perform_task(self, agents=None):
         """Extended task performance: Titans prioritize building if they have materials."""
         # 2026 Autonomous Infrastructure Logic
         # Check swarm needs: If many agents are low health, prioritize Research Labs
@@ -120,10 +146,22 @@ class HumanoidTitan(HumanoidAgent):
         has_alloy = self.inventory.get("Alloy", 0) >= 10
         has_metal = self.inventory.get("Metal", 0) >= 20
 
+        # 1. 2026 Swarm Mutual Aid: Check for critical agents first
+        need_health, need_relay, critical_agent = self.scan_swarm_needs()
+
+        if critical_agent:
+            dist = sum(abs(a - b) for a, b in zip(self.position, critical_agent.position))
+            if dist <= 1:
+                if self.cooperative_repair(critical_agent):
+                    self.status = f"Repaired {critical_agent.name}"
+                    return
+            else:
+                # Move towards critical agent
+                self.current_target = critical_agent.position
+                # Proceed to movement logic below by skipping infrastructure checks for now
+
         if has_alloy or has_metal:
             # 2026: Informed Decision Making
-            need_health, need_relay = self.scan_swarm_needs()
-
             if need_health and self.build_research_lab():
                 return
 
@@ -149,7 +187,7 @@ class HumanoidTitan(HumanoidAgent):
                         return
 
         # 4. Otherwise, behave like a standard agent (Scavenging)
-        super().perform_task()
+        super().perform_task(agents=agents)
 
 if __name__ == "__main__":
     print("HumanoidTitan module loaded.")

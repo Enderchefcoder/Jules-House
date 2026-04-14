@@ -77,6 +77,13 @@ def generate_deep_thoughts(count=1000):
             "answer": "<think>On April 14th, battery-sensitive overrides were updated to be role-specific. Titans now have a 35% critical threshold, while Scouts can push down to 15%.</think> Role-specific battery thresholds optimize the operational longevity of the swarm by acknowledging the unique energy profiles of different agent classes. Titans, with their high-mass construction requirements, now maintain a larger energy buffer (35%) to ensure they don't become stranded during complex infrastructure builds. Conversely, Scouts utilize their lighter frames to push further into the environment with a 15% threshold, maximizing exploration range before returning to a charger, thereby increasing the overall efficiency of the swarm's resource discovery network.",
             "source": "AETHER Agent Heuristics v8",
             "date": "2026-04-14"
+        },
+        {
+            "id": "DT-2026-04-16-TECH-001",
+            "question": "How does the 'Emergent Cooperative Repair' protocol function in the AETHER ecosystem?",
+            "answer": "<think>On April 16th, the HumanoidAgent class was updated with a cooperative_repair method. This allows agents to monitor the health of nearby peers and perform emergency 'QuickFix' maintenance using their own Metal and Credits.</think> Emergent Cooperative Repair represents a shift from individualistic survival to swarm-level mutual aid. When an agent detects a nearby peer (within Manhattan distance 1) with health below 30%, it can proactively initiate a repair sequence. This costs the donor agent 100 credits and 5 Metal but restores the recipient's health, ensuring that critical units like Scouts or Gatherers can remain operational in high-stress zones even if they are distant from a formal Repair Bay.",
+            "source": "Swarm Mutual Aid Protocol v1",
+            "date": "2026-04-16"
         }
     ]
     entries.extend(base_entries)
@@ -104,11 +111,11 @@ def generate_deep_thoughts(count=1000):
     for i in range(len(entries) + 1, count + 1):
         sub = random.choice(subsystems)
         concept = random.choice(technical_concepts)
-        entry_id = f"DT-2026-04-14-TECH-{i:04d}"
+        entry_id = f"DT-2026-04-16-TECH-{i:04d}"
 
         question = f"How does {sub} implement {concept} to ensure 2026-grade autonomous stability?"
 
-        think = f"<think>Analyzing the integration of {sub} with {concept} on April 14th. Step {i} involves checking for {random.choice(['latency', 'energy efficiency', 'data integrity', 'adversarial resilience'])}. The {sub.split()[-1]} logic must handle {random.choice(['multimodal inputs', 'economic volatility', 'hardware failure'])}.</think>"
+        think = f"<think>Analyzing the integration of {sub} with {concept} on April 16th. Step {i} involves checking for {random.choice(['latency', 'energy efficiency', 'data integrity', 'adversarial resilience'])}. The {sub.split()[-1]} logic must handle {random.choice(['multimodal inputs', 'economic volatility', 'hardware failure'])}.</think>"
 
         answer = f"{think} The {sub} utilizes a specialized architecture where {concept} is prioritized during high-load simulation cycles. By decoupling {random.choice(['sensing', 'processing', 'acting'])} from {random.choice(['centralized control', 'local memory', 'global state'])}, the system achieves a 2026-standard of robustness, allowing the {sub.split()[-1]} to maintain operational continuity even during {random.choice(['Solar Flares', 'Acid Rain', 'Compute Shortages', 'Market Crashes'])}."
 
@@ -117,7 +124,7 @@ def generate_deep_thoughts(count=1000):
             "question": question,
             "answer": answer,
             "source": "Technical Archive 2026",
-            "date": "2026-04-14"
+            "date": "2026-04-16"
         })
 
     return entries
@@ -153,6 +160,13 @@ def generate_modern_day(count=1000):
             "answer": "<think>Reports from April 14th indicate that cities using localized sensory vibe processing in their maintenance swarms are seeing a 25% faster response time to micro-shocks. Global observers are calling this 'Emotional Localization'.</think> The introduction of localized 'Sensory Vibe' processing has ushered in the era of Emotional Localization in urban autonomous management. Cities across the European Union are reporting that maintenance swarms equipped with this technology can detect and react to localized 'Environmental Chaos'—such as sudden traffic congestion or infrastructure failures—well before global monitoring systems can register the event. This decentralized emotional awareness allows for real-time, hyper-local adaptation, making 2026 urban environments more responsive and resilient than ever before.",
             "source": "2026 Urban Resilience Report",
             "date": "2026-04-14"
+        },
+        {
+            "id": "MD-2026-04-16-GLOBAL-001",
+            "question": "What is the geopolitical significance of the 'Swarm Mutual Aid' paradigm introduced in April 2026?",
+            "answer": "<think>The April 16th introduction of 'Emergent Cooperative Repair' in the AETHER swarm is being hailed as a major milestone in autonomous social evolution. Analysts suggest this will lead to significantly more durable infrastructure in hostile environments.</think> The shift toward 'Swarm Mutual Aid' represents the next frontier of autonomous geopolitics. By moving beyond individual energy-efficiency targets and toward collective maintenance goals, agent-managed zones are demonstrating a level of structural resilience that outpaces traditional centralized systems. Global observers note that this 'peer-to-peer resilience' is particularly effective in regions prone to extreme GAIA weather shocks, effectively decoupling infrastructure uptime from the physical proximity of centralized repair hubs.",
+            "source": "Autonomous Society Review 2026",
+            "date": "2026-04-16"
         }
     ]
     entries.extend(base_entries)
@@ -171,11 +185,11 @@ def generate_modern_day(count=1000):
     for i in range(len(entries) + 1, count + 1):
         region = random.choice(regions)
         topic = random.choice(topics)
-        entry_id = f"MD-2026-04-14-NEWS-{i:04d}"
+        entry_id = f"MD-2026-04-16-NEWS-{i:04d}"
 
         question = f"What was the impact of {topic} developments in the {region} during Q2 2026?"
 
-        think = f"<think>Reviewing news dispatches from {region} regarding {topic} on April 14th. Reports from {random.choice(['local agents', 'government observers', 'industrial foundries'])} suggest a {random.choice(['paradigm shift', 'temporary setback', 'major breakthrough'])}.</think>"
+        think = f"<think>Reviewing news dispatches from {region} regarding {topic} on April 16th. Reports from {random.choice(['local agents', 'government observers', 'industrial foundries'])} suggest a {random.choice(['paradigm shift', 'temporary setback', 'major breakthrough'])}.</think>"
 
         answer = f"{think} The {region} has seen significant movement in {topic} as of mid-April 2026. Experts noted that {random.choice(['infrastructure upgrades', 'policy shifts', 'technological convergence'])} led to a {random.choice(['30%', '50%', '100%'])} increase in {random.choice(['swarm coordination', 'economic stability', 'energy efficiency'])}. This trend highlights the growing importance of {random.choice(['autonomous governance', 'distributed intelligence', 'resource refinement'])} in the modern geopolitical landscape."
 
@@ -184,14 +198,14 @@ def generate_modern_day(count=1000):
             "question": question,
             "answer": answer,
             "source": "2026 Global Dispatch",
-            "date": "2026-04-14"
+            "date": "2026-04-16"
         })
 
     return entries
 
 if __name__ == "__main__":
-    dt_entries = generate_deep_thoughts(15000)
-    md_entries = generate_modern_day(15000)
+    dt_entries = generate_deep_thoughts(25000)
+    md_entries = generate_modern_day(25000)
 
-    scale_corpus("projects/deep_thoughts/entries_2026_apr_15.json", dt_entries)
-    scale_corpus("projects/modern_day/entries_2026_apr_15.json", md_entries)
+    scale_corpus("projects/deep_thoughts/entries_2026_apr_16.json", dt_entries)
+    scale_corpus("projects/modern_day/entries_2026_apr_16.json", md_entries)
