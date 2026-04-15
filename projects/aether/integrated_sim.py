@@ -162,6 +162,10 @@ def run_integrated_sim():
             vibe = argus.get_sentiment_metric()
             engine.message_bus.global_state["vibe"] = vibe
 
+            # Update GAIA Comms Interference in HERMES
+            interference = gaia_weather.get_comms_interference()
+            engine.message_bus.global_state["interference"] = interference
+
             # Update CHRONOS Market Sentiment
             market.update_sentiment(vibe, [1.0 - (a.health_monitor.get_overall_health()/100.0) for a in agents if hasattr(a, 'health_monitor') and a.health_monitor is not None])
 
