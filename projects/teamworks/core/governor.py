@@ -13,6 +13,18 @@ class SwarmGovernor:
         self.compute_quota = val
         print(f"[GOVERNOR] Compute Quota set to {val}.")
 
+    def dynamic_quota_adjustment(self, severity):
+        """Dynamically adjusts global HYDRA compute quotas using severity levels."""
+        if severity == "Solar Flare":
+            # Solar flares disrupt comms, we limit offloading to 30% of standard
+            self.set_compute_quota(30)
+        elif severity == "Compute Shortage":
+            # Critical shortage, only 10% quota
+            self.set_compute_quota(10)
+        else:
+            # Standard operational quota
+            self.set_compute_quota(100)
+
     def is_quarantined(self, agent_name):
         return agent_name in self.quarantined_agents
 
@@ -50,9 +62,12 @@ class SwarmGovernor:
         """Adjusts swarm constraints based on global shocks from ARGUS."""
         if argus_vibe == "Compute Shortage":
             print("[GOVERNOR] SHOCK: Emergency compute quotas implemented.")
-            # Implementation for compute quotas would go here
+            self.dynamic_quota_adjustment("Compute Shortage")
         elif argus_vibe == "Solar Flare":
             print("[GOVERNOR] SHOCK: Solar Grid Optimization active.")
+            self.dynamic_quota_adjustment("Solar Flare")
+        else:
+            self.dynamic_quota_adjustment("Normal")
 
 if __name__ == "__main__":
     print("SwarmGovernor module loaded.")

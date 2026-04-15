@@ -63,6 +63,8 @@ class PriorityMessageBus:
             all_msgs.extend(self.queues[p])
 
         filtered_msgs = []
+        interference = self.global_state.get("interference", 0.0)
+
         for m in all_msgs:
             # Topic Encryption Check (Simulated Authorization)
             if m["priority"] == "Emergency" and viewer_role not in ["Admin", "Governor", "EmergencyResponse"]:
@@ -74,7 +76,8 @@ class PriorityMessageBus:
             # ORION Range Check
             if viewer_pos and m.get("origin_pos"):
                 dist = sum(abs(a - b) for a, b in zip(viewer_pos, m["origin_pos"]))
-                base_range = 10
+                # 2026: Environmental Interference reduces base range
+                base_range = max(1, 10 * (1.0 - interference))
                 # Check for relay boost
                 boost = 0
                 for relay in self.relays:

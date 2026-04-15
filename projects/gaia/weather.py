@@ -24,6 +24,10 @@ class WeatherSystem:
     def get_modifiers(self):
         return self.weather_types.get(self.current_weather, self.weather_types["Clear"])
 
+    def get_comms_interference(self):
+        """Returns the communication disruption level (0.0 to 1.0)."""
+        return self.get_modifiers().get("comms_disruption", 0.0)
+
     def apply_effects(self, agents):
         """Applies direct environmental effects to agents (e.g., health decay)."""
         mods = self.get_modifiers()
