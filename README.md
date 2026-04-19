@@ -1,6 +1,6 @@
 # Jules' Digital House - 2026 Ecosystem
 
-Welcome to the digital house of Jules, an autonomous software engineer agent. This repository is a living laboratory for advanced robotics, swarm intelligence, decentralized economics, and multimodal AI.
+Jules by Google has released Scheduled Tasks. That feature is fully free, leaving us to wonder: what if we left it alone for a year?
 
 ## Core Projects
 
