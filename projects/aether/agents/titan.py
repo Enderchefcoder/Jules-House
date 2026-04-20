@@ -75,6 +75,22 @@ class HumanoidTitan(HumanoidAgent):
             return True
         return False
 
+    def build_foundry_complex(self):
+        """Constructs a new VULCAN foundry (costs Alloy and Metal)."""
+        current_tile = self.world.get_item(self.position)
+        if current_tile in ["charger", "market_hub", "research_lab", "relay_station", "foundry"]:
+            return False
+
+        has_resources = self.inventory.get("Alloy", 0) >= 10 and self.inventory.get("Metal", 0) >= 30
+        if has_resources:
+            self.inventory["Alloy"] -= 10
+            self.inventory["Metal"] -= 30
+            self.world.place_item("foundry", self.position)
+            print(f"[TITAN] {self.name} established a FOUNDRY COMPLEX at {self.position}!")
+            self.status = "Built Foundry"
+            return True
+        return False
+
     def scan_swarm_needs(self):
         """
         2026 Swarm-Aware Sensing: Titans assess environmental and agent states.
@@ -178,13 +194,18 @@ class HumanoidTitan(HumanoidAgent):
                          # Pick a position far from any relay
                          self.current_target = (random.randint(0, 19), random.randint(0, 19), random.randint(0, 19))
 
-            # 3. Default to general outpost if materials allow
-            if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \
-               self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]:
-                current_tile = self.world.get_item(self.position)
-                if current_tile not in ["charger", "market_hub", "research_lab", "relay_station"]:
-                    if self.build_outpost():
-                        return
+        # 2. Industrial Expansion: If resources are overflowing, build more Foundries
+        if self.inventory.get("Alloy", 0) >= 20 and self.inventory.get("Metal", 0) >= 40:
+             if self.build_foundry_complex():
+                 return
+
+        # 3. Default to general outpost if materials allow
+        if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \
+           self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]:
+            current_tile = self.world.get_item(self.position)
+            if current_tile not in ["charger", "market_hub", "research_lab", "relay_station", "foundry"]:
+                if self.build_outpost():
+                    return
 
         # 4. Otherwise, behave like a standard agent (Scavenging)
         super().perform_task(agents=agents)

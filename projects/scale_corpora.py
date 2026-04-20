@@ -84,6 +84,27 @@ def generate_deep_thoughts(count=1000):
             "answer": "<think>On April 16th, the HumanoidAgent class was updated with a cooperative_repair method. This allows agents to monitor the health of nearby peers and perform emergency 'QuickFix' maintenance using their own Metal and Credits.</think> Emergent Cooperative Repair represents a shift from individualistic survival to swarm-level mutual aid. When an agent detects a nearby peer (within Manhattan distance 1) with health below 30%, it can proactively initiate a repair sequence. This costs the donor agent 100 credits and 5 Metal but restores the recipient's health, ensuring that critical units like Scouts or Gatherers can remain operational in high-stress zones even if they are distant from a formal Repair Bay.",
             "source": "Swarm Mutual Aid Protocol v1",
             "date": "2026-04-16"
+        },
+        {
+            "id": "DT-2026-04-18-TECH-001",
+            "question": "Explain the significance of 'Peer-Density Heuristics' integrated into RobotBrain on April 18th.",
+            "answer": "<think>On April 18th, the RobotBrain input size was increased to 11 to include peer_density. This allows agents to sense how many other agents are nearby and adjust their behavior—such as avoiding congestion or seeking safety in numbers.</think> Peer-Density Heuristics represent a major step toward social intelligence in AETHER. By sensing the number of peers within a distance of 5, agents can now factor 'swarm density' into their neural decision-making. This enables emergent behaviors like self-organized queueing at foundries or cluster-based scavenging, improving the overall efficiency of the swarm by reducing localized congestion and enhancing mutual-aid visibility.",
+            "source": "RobotBrain Architecture v9",
+            "date": "2026-04-18"
+        },
+        {
+            "id": "DT-2026-04-18-TECH-002",
+            "question": "How does the 'Foundry Complex' construction capability enhance Titan agents?",
+            "answer": "<think>On April 18th, HumanoidTitan was upgraded with the build_foundry_complex method. This allows Titans to establish new VULCAN foundries using Alloy and Metal, facilitating industrial expansion.</think> The ability to build 'Foundry Complexes' transforms Titans into the industrial architects of the swarm. By deploying new foundries in resource-rich but infrastructure-poor sectors, Titans can minimize the distance Gatherers must travel to refine raw materials, significantly increasing the swarm's total Alloy throughput and accelerating large-scale construction megaprojects.",
+            "source": "Titan Construction Specs v2",
+            "date": "2026-04-18"
+        },
+        {
+            "id": "DT-2026-04-18-TECH-003",
+            "question": "Explain the 'Automated Economic Subsidy' mechanism added to the SwarmGovernor.",
+            "answer": "<think>The April 18th update to the SwarmGovernor introduced apply_subsidy, allowing the governor to programmatically lower resource prices based on swarm consensus to incentivize specific behaviors.</think> Automated Economic Subsidies provide the SwarmGovernor with a precise tool for ecosystem management. By applying price multipliers (subsidies) to critical resources like Energy, the Governor can steer the swarm's collective effort toward urgent priorities—such as emergency recharging during solar flares—ensuring that economic incentives remain aligned with the swarm's survival and industrial goals.",
+            "source": "Governor Policy Protocol v5",
+            "date": "2026-04-18"
         }
     ]
     entries.extend(base_entries)
@@ -111,11 +132,11 @@ def generate_deep_thoughts(count=1000):
     for i in range(len(entries) + 1, count + 1):
         sub = random.choice(subsystems)
         concept = random.choice(technical_concepts)
-        entry_id = f"DT-2026-04-16-TECH-{i:04d}"
+        entry_id = f"DT-2026-04-18-TECH-{i:04d}"
 
         question = f"How does {sub} implement {concept} to ensure 2026-grade autonomous stability?"
 
-        think = f"<think>Analyzing the integration of {sub} with {concept} on April 16th. Step {i} involves checking for {random.choice(['latency', 'energy efficiency', 'data integrity', 'adversarial resilience'])}. The {sub.split()[-1]} logic must handle {random.choice(['multimodal inputs', 'economic volatility', 'hardware failure'])}.</think>"
+        think = f"<think>Analyzing the integration of {sub} with {concept} on April 18th. Step {i} involves checking for {random.choice(['latency', 'energy efficiency', 'data integrity', 'adversarial resilience'])}. The {sub.split()[-1]} logic must handle {random.choice(['multimodal inputs', 'economic volatility', 'hardware failure'])}.</think>"
 
         answer = f"{think} The {sub} utilizes a specialized architecture where {concept} is prioritized during high-load simulation cycles. By decoupling {random.choice(['sensing', 'processing', 'acting'])} from {random.choice(['centralized control', 'local memory', 'global state'])}, the system achieves a 2026-standard of robustness, allowing the {sub.split()[-1]} to maintain operational continuity even during {random.choice(['Solar Flares', 'Acid Rain', 'Compute Shortages', 'Market Crashes'])}."
 
@@ -124,7 +145,7 @@ def generate_deep_thoughts(count=1000):
             "question": question,
             "answer": answer,
             "source": "Technical Archive 2026",
-            "date": "2026-04-16"
+            "date": "2026-04-18"
         })
 
     return entries
@@ -167,6 +188,20 @@ def generate_modern_day(count=1000):
             "answer": "<think>The April 16th introduction of 'Emergent Cooperative Repair' in the AETHER swarm is being hailed as a major milestone in autonomous social evolution. Analysts suggest this will lead to significantly more durable infrastructure in hostile environments.</think> The shift toward 'Swarm Mutual Aid' represents the next frontier of autonomous geopolitics. By moving beyond individual energy-efficiency targets and toward collective maintenance goals, agent-managed zones are demonstrating a level of structural resilience that outpaces traditional centralized systems. Global observers note that this 'peer-to-peer resilience' is particularly effective in regions prone to extreme GAIA weather shocks, effectively decoupling infrastructure uptime from the physical proximity of centralized repair hubs.",
             "source": "Autonomous Society Review 2026",
             "date": "2026-04-16"
+        },
+        {
+            "id": "MD-2026-04-18-GLOBAL-001",
+            "question": "What is the impact of 'Industrial Swarm Evolution' on 2026 global production metrics?",
+            "answer": "<think>Dispatches from April 18th highlight a 45% increase in Alloy throughput in sectors where Titans have deployed Foundry Complexes. Analysts are calling this 'Industrial Swarm Evolution'.</think> 'Industrial Swarm Evolution' is redefining global production in 2026. By empowering autonomous agents with the capability to establish their own manufacturing hubs (Foundry Complexes), the dependency on centralized industrial zones is rapidly diminishing. In the Pacific Rim, this has led to a decentralized 'Alloy Boom,' where autonomous swarms are now capable of self-sustaining infrastructure growth in remote or previously unreachable environments, fundamentally altering the global balance of industrial power.",
+            "source": "2026 Global Industrial Review",
+            "date": "2026-04-18"
+        },
+        {
+            "id": "MD-2026-04-18-GLOBAL-002",
+            "question": "How are 'Peer-Density Heuristics' influencing 2026 autonomous urban planning?",
+            "answer": "<think>Reports from April 18th indicate that cities using peer-density-aware swarms for logistics have seen a 30% reduction in agent collision and congestion. This is a major breakthrough in swarm social dynamics.</think> The integration of Peer-Density Heuristics into autonomous logistics swarms is revolutionizing urban planning. In high-density hubs like Singapore and Tokyo, agent swarms can now 'feel' the crowd, adjusting their routes and task priorities to prevent bottlenecks and maximize mutual-aid coverage. This social awareness is proving critical for the stability of agent-managed urban environments, where the ability to self-regulate density is as important as the ability to execute tasks.",
+            "source": "Urban Autonomy Journal 2026",
+            "date": "2026-04-18"
         }
     ]
     entries.extend(base_entries)
@@ -185,11 +220,11 @@ def generate_modern_day(count=1000):
     for i in range(len(entries) + 1, count + 1):
         region = random.choice(regions)
         topic = random.choice(topics)
-        entry_id = f"MD-2026-04-16-NEWS-{i:04d}"
+        entry_id = f"MD-2026-04-18-NEWS-{i:04d}"
 
         question = f"What was the impact of {topic} developments in the {region} during Q2 2026?"
 
-        think = f"<think>Reviewing news dispatches from {region} regarding {topic} on April 16th. Reports from {random.choice(['local agents', 'government observers', 'industrial foundries'])} suggest a {random.choice(['paradigm shift', 'temporary setback', 'major breakthrough'])}.</think>"
+        think = f"<think>Reviewing news dispatches from {region} regarding {topic} on April 18th. Reports from {random.choice(['local agents', 'government observers', 'industrial foundries'])} suggest a {random.choice(['paradigm shift', 'temporary setback', 'major breakthrough'])}.</think>"
 
         answer = f"{think} The {region} has seen significant movement in {topic} as of mid-April 2026. Experts noted that {random.choice(['infrastructure upgrades', 'policy shifts', 'technological convergence'])} led to a {random.choice(['30%', '50%', '100%'])} increase in {random.choice(['swarm coordination', 'economic stability', 'energy efficiency'])}. This trend highlights the growing importance of {random.choice(['autonomous governance', 'distributed intelligence', 'resource refinement'])} in the modern geopolitical landscape."
 
@@ -198,14 +233,14 @@ def generate_modern_day(count=1000):
             "question": question,
             "answer": answer,
             "source": "2026 Global Dispatch",
-            "date": "2026-04-16"
+            "date": "2026-04-18"
         })
 
     return entries
 
 if __name__ == "__main__":
-    dt_entries = generate_deep_thoughts(25000)
-    md_entries = generate_modern_day(25000)
+    dt_entries = generate_deep_thoughts(35000)
+    md_entries = generate_modern_day(35000)
 
-    scale_corpus("projects/deep_thoughts/entries_2026_apr_16.json", dt_entries)
-    scale_corpus("projects/modern_day/entries_2026_apr_16.json", md_entries)
+    scale_corpus("projects/deep_thoughts/entries_2026_apr_18.json", dt_entries)
+    scale_corpus("projects/modern_day/entries_2026_apr_18.json", md_entries)
