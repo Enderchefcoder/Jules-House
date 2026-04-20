@@ -57,7 +57,7 @@ class HumanoidAgent:
         self.battery = 100
         self.status = "Idle"
         self.is_3d = hasattr(world, 'depth')
-        self.brain = RobotBrain(input_size=10)
+        self.brain = RobotBrain(input_size=11)
         self.optimizer = optim.Adam(self.brain.parameters(), lr=0.01)
         self.role = role
 
@@ -302,14 +302,21 @@ class HumanoidAgent:
         self.process_messages()
 
         # 0.0.1 Cooperative Repair Check: Can we help a nearby failing peer?
+        peer_count = 0
         if agents:
             for other in agents:
-                if other.name != self.name and hasattr(other, 'health_monitor') and other.health_monitor:
+                if other.name != self.name:
                     dist = sum(abs(a - b) for a, b in zip(self.position, other.position))
-                    if dist <= 1 and other.health_monitor.get_overall_health() < 30:
-                        if self.cooperative_repair(other):
-                            self.status = f"Repaired {other.name}"
-                            return
+                    if dist < 5: # Peer density within distance 5
+                        peer_count += 1
+
+                    if hasattr(other, 'health_monitor') and other.health_monitor:
+                        if dist <= 1 and other.health_monitor.get_overall_health() < 30:
+                            if self.cooperative_repair(other):
+                                self.status = f"Repaired {other.name}"
+                                return
+
+        peer_density = min(1.0, peer_count / 5.0)
 
         # 0.1 Check for assigned TaskTickets (Project TeamWorks)
         assigned_target = None
@@ -416,7 +423,7 @@ class HumanoidAgent:
         brain_input = torch.tensor([
             survival_need, profit_need, task_need, health_need,
             role_scaled, balance_scaled, global_vibe, market_sentiment,
-            0.0, 0.0
+            0.0, 0.0, peer_density
         ])
 
         self.last_state = brain_input
@@ -461,10 +468,12 @@ class HumanoidAgent:
         charger_pos = self.find_nearest_item("charger")
         market_pos = self.find_nearest_item("market_hub")
         repair_pos = self.find_nearest_item("repair_bay")
+        foundry_pos = self.find_nearest_item("foundry")
 
         options = []
         if charger_pos: options.append((decision_weights[0].item(), charger_pos, "Charging"))
         if market_pos: options.append((decision_weights[1].item(), market_pos, "Selling"))
+        if foundry_pos: options.append((decision_weights[6].item(), foundry_pos, "Processing"))
 
         task_target = None
         if self.message_bus and hasattr(self.message_bus, 'query_memory'):

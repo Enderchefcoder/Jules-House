@@ -34,10 +34,7 @@ class SwarmGovernor:
 
         if decision == "Mission Priority":
             if winner == "Energy Gathering":
-                # Lower energy prices temporarily to encourage collection
-                if self.engine.market:
-                    self.engine.market.resources["Energy"] *= 0.8
-                    print("[GOVERNOR] Energy prices lowered by 20% to incentivize gathering.")
+                self.apply_subsidy("Energy", 0.8)
             elif winner == "Data Scavenging":
                 # Increase Data prices to reward successful scavenging
                 if self.engine.market:
@@ -57,6 +54,15 @@ class SwarmGovernor:
             print(f"[GOVERNOR] Agent {agent_name} QUARANTINED due to security policy.")
             # In a full implementation, we would modify the agent's MessageBus access or
             # prevent them from performing certain tasks.
+
+    def apply_subsidy(self, resource_type, multiplier=0.9):
+        """Influences market prices by applying a subsidy to a specific resource."""
+        if self.engine.market:
+            if resource_type in self.engine.market.resources:
+                self.engine.market.resources[resource_type] *= multiplier
+                print(f"[GOVERNOR] Applied {multiplier}x SUBSIDY to {resource_type}. New Price: {self.engine.market.resources[resource_type]:.2f}")
+                return True
+        return False
 
     def reconcile_shocks(self, argus_vibe):
         """Adjusts swarm constraints based on global shocks from ARGUS."""
