@@ -16,7 +16,7 @@ class DroneAgent:
         self.status = "Idling"
         self.role = "Drone"
         # Drones use a simpler input for now or match 3D brain size
-        self.brain = RobotBrain(input_size=10) # Match 3D brain size
+        self.brain = RobotBrain(input_size=11) # Match 3D brain size
         self.view_distance = 5 # Can see 5 units in all directions
         self.message_bus = None
         self.mapped_area = set()
@@ -71,7 +71,7 @@ class DroneAgent:
         if dz != 0:
             self.move_3d(0, 0, dz)
 
-    def perform_task(self, agents=None):
+    def perform_task(self, agents=None, **kwargs):
         """Mapping logic: move randomly or towards unmapped sectors."""
         # 1. Scan current location
         self.scan_environment()

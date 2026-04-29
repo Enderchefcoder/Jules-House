@@ -15,7 +15,7 @@ class RogueAgent:
         self.battery_cost = 2
         self.status = "Infiltrating"
         self.role = "Rogue"
-        self.brain = RobotBrain(input_size=8)
+        self.brain = RobotBrain(input_size=11)
         self.message_bus = None
         self.balance = 1000.0
 
@@ -53,7 +53,7 @@ class RogueAgent:
             return True
         return False
 
-    def perform_task(self, agents=None):
+    def perform_task(self, agents=None, **kwargs):
         """Rogue logic: Move randomly, inject data, and drain resources."""
         # 1. Malicious actions
         if random.random() < 0.3:
