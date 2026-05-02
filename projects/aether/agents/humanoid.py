@@ -47,6 +47,19 @@ class SensorySystem:
         self.last_packet = packet
         return packet
 
+# Brain Input Indices
+BRAIN_IDX_SURVIVAL = 0
+BRAIN_IDX_PROFIT = 1
+BRAIN_IDX_TASK = 2
+BRAIN_IDX_HEALTH = 3
+BRAIN_IDX_ROLE = 4
+BRAIN_IDX_BALANCE = 5
+BRAIN_IDX_GLOBAL_VIBE = 6
+BRAIN_IDX_MARKET_SENTIMENT = 7
+BRAIN_IDX_SENSORY_VIBE = 8
+BRAIN_IDX_TACTILE = 9
+BRAIN_IDX_PEER_DENSITY = 10
+
 class HumanoidAgent:
     """A humanoid robot agent for the AETHER simulation with RL and infrastructure hooks."""
 
@@ -155,8 +168,18 @@ class HumanoidAgent:
             print(f"{self.name} BROADCAST EMERGENCY: {message}")
 
     def move(self, dx, dy):
-        """Moves the agent on the world grid."""
-        if self.battery < self.battery_cost:
+        """Moves the agent on the world grid with Metabolic Vibe Modifiers."""
+        # 2026: Metabolic Vibe Modifiers
+        # Vibe at BRAIN_IDX_SENSORY_VIBE (index 8) of last brain input (0.0 to 1.0)
+        # Chaos (0.0) increases cost, Serene (1.0) decreases cost.
+        vibe_modifier = 1.0
+        if hasattr(self, 'last_state') and self.last_state is not None:
+            vibe = self.last_state[BRAIN_IDX_SENSORY_VIBE].item()
+            vibe_modifier = 1.5 - vibe # 0.5 (Serene) to 1.5 (Chaos)
+
+        effective_cost = self.battery_cost * vibe_modifier
+
+        if self.battery < effective_cost:
             print(f"{self.name} battery too low to move!")
             return False
 
@@ -167,7 +190,7 @@ class HumanoidAgent:
 
         if self.world.move_agent(self, self.position, new_pos):
             self.position = new_pos
-            self.battery -= self.battery_cost
+            self.battery -= effective_cost
             self.status = "Moving"
             if self.health_monitor:
                 self.health_monitor.step(movement_type="Standard")
@@ -175,12 +198,18 @@ class HumanoidAgent:
         return False
 
     def move_3d(self, dx, dy, dz):
-        """Moves the agent in 3D space."""
+        """Moves the agent in 3D space with Metabolic Vibe Modifiers."""
+        # 2026: Metabolic Vibe Modifiers
+        vibe_modifier = 1.0
+        if hasattr(self, 'last_state') and self.last_state is not None:
+            vibe = self.last_state[BRAIN_IDX_SENSORY_VIBE].item()
+            vibe_modifier = 1.5 - vibe
+
         # Calculate effective battery cost (reduced near Outpost Beacons)
-        effective_cost = self.battery_cost
+        effective_cost = self.battery_cost * vibe_modifier
         current_item = self.world.get_item(self.position)
         if current_item == "outpost_beacon":
-            effective_cost = max(1, self.battery_cost // 2)
+            effective_cost = max(1, effective_cost // 2)
 
         if self.battery < effective_cost:
             print(f"{self.name} battery too low to move!")
@@ -296,7 +325,7 @@ class HumanoidAgent:
                     self.shared_resource_locations[res_type].append(pos)
                     # print(f"{self.name} received broadcast: {res_type} at {pos}")
 
-    def perform_task(self, agents=None):
+    def perform_task(self, agents=None, **kwargs):
         """Decides and performs an action based on state, battery, and RL feedback."""
         # 0. Process swarm communication
         self.process_messages()
@@ -420,23 +449,23 @@ class HumanoidAgent:
             global_vibe = self.message_bus.global_state.get("vibe", 0.5)
             market_sentiment = self.message_bus.global_state.get("sentiment", 0.5)
 
-        brain_input = torch.tensor([
-            survival_need, profit_need, task_need, health_need,
-            role_scaled, balance_scaled, global_vibe, market_sentiment,
-            0.0, 0.0, peer_density
-        ])
-
-        self.last_state = brain_input
+        brain_input = torch.zeros(11)
+        brain_input[BRAIN_IDX_SURVIVAL] = survival_need
+        brain_input[BRAIN_IDX_PROFIT] = profit_need
+        brain_input[BRAIN_IDX_TASK] = task_need
+        brain_input[BRAIN_IDX_HEALTH] = health_need
+        brain_input[BRAIN_IDX_ROLE] = role_scaled
+        brain_input[BRAIN_IDX_BALANCE] = balance_scaled
+        brain_input[BRAIN_IDX_GLOBAL_VIBE] = global_vibe
+        brain_input[BRAIN_IDX_MARKET_SENTIMENT] = market_sentiment
 
         # 2026: Local Sensory Integration (Vibe/Mood)
         sensory_vibe = 0.5
         if self.sensory_system:
             # Simulate a quick capture of the environment's mood
-            # In a real sim, we'd pass an actual image path
             packet = self.sensory_system.capture_observation("visual/aether_complex_v7.png", "steady_hum")
             if packet:
                 mood = packet.get("mood_classification", "Neutral")
-                # Map mood to a scalar
                 mood_map = {
                     "Environmental Chaos / Sensory Overload": 0.0,
                     "Void-Like / Total Sensory Deprivation": 0.1,
@@ -450,13 +479,16 @@ class HumanoidAgent:
                 }
                 sensory_vibe = mood_map.get(mood, 0.5)
 
-        # Update input vector with sensory vibe
-        brain_input[8] = sensory_vibe
+        # Update input vector with sensory vibe (index 8)
+        brain_input[BRAIN_IDX_SENSORY_VIBE] = sensory_vibe
 
-        # 2026: Tactile Proximity Integration (Input index 9)
+        # 2026: Tactile Proximity Integration (index 9)
         if hasattr(self.world, 'get_tactile_proximity'):
-            tactile_proximity = self.world.get_tactile_proximity(self.position)
-            brain_input[9] = tactile_proximity
+            brain_input[BRAIN_IDX_TACTILE] = self.world.get_tactile_proximity(self.position)
+
+        brain_input[BRAIN_IDX_PEER_DENSITY] = peer_density
+
+        self.last_state = brain_input
 
         # HYDRA Offloading logic: Call remote compute if battery is low
         if self.battery < 40 and self.brain_distributor:
