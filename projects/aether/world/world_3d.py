@@ -60,5 +60,26 @@ class World3D:
             return 'obstacle'
         return self.items.get(pos)
 
+    def get_tactile_proximity(self, pos):
+        """
+        2026 Tactile Awareness: Calculates proximity to the nearest obstacle.
+        Returns 1.0 if adjacent to an obstacle, decreasing as distance increases.
+        """
+        if not self.obstacles:
+            return 0.0
+
+        min_dist = float('inf')
+        # Check obstacles within a small window to optimize
+        for obs_pos in self.obstacles:
+            # Manhattan distance for simplicity in voxel grid
+            dist = sum(abs(a - b) for a, b in zip(pos, obs_pos))
+            if dist < min_dist:
+                min_dist = dist
+
+        if min_dist == 0: return 1.0 # Inside an obstacle (should not happen)
+        # Proximity is inverse of distance, capped at a reasonable range (e.g., 5)
+        proximity = max(0.0, 1.0 - (min_dist / 5.0))
+        return proximity
+
     def __repr__(self):
         return f"World3D({self.width}x{self.height}x{self.depth}, Items: {len(self.items)})"

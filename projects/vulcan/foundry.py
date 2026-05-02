@@ -8,7 +8,21 @@ class Foundry:
         self.metal_input = 0
         self.energy_input = 0
         self.alloy_output = 0
-        self.conversion_rate = 5 # 5 Metal + 5 Energy -> 1 Alloy
+        self.level = 1
+        self.conversion_rate = 5 # Level 1: 5 Metal + 5 Energy -> 1 Alloy
+
+    def upgrade(self):
+        """Upgrades the foundry to the next level, improving efficiency."""
+        if self.level < 3:
+            self.level += 1
+            if self.level == 2:
+                self.conversion_rate = 3
+            elif self.level == 3:
+                self.conversion_rate = 2
+            print(f"[VULCAN] Foundry at {self.position} upgraded to Level {self.level}. New conversion rate: {self.conversion_rate}")
+            return True
+        print(f"[VULCAN] Foundry at {self.position} is already at peak efficiency (Level 3).")
+        return False
 
     def deposit_resources(self, metal=0, energy=0):
         self.metal_input += metal
@@ -36,4 +50,5 @@ class Foundry:
         return actual_collect
 
     def __repr__(self):
-        return f"Foundry({self.position}, Metal: {self.metal_input}, Energy: {self.energy_input}, Alloy: {self.alloy_output})"
+        efficiency = "Peak" if self.level == 3 else f"Level {self.level}"
+        return f"Foundry({self.position}, {efficiency}, Metal: {self.metal_input}, Energy: {self.energy_input}, Alloy: {self.alloy_output})"
