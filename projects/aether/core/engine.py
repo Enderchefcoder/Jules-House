@@ -11,6 +11,7 @@ try:
     from teamworks.core.task_manager import TaskManager
     from teamworks.core.heartbeat import HeartbeatManager
     from projects.hermes.bus import PriorityMessageBus
+    from projects.aether.core.dashboard import CivilizationDashboard
 except ImportError:
     Market = None
     HazardManager = None
@@ -32,8 +33,16 @@ class SimulationEngine:
         self.hazard_manager = HazardManager(world) if HazardManager else None
         self.task_manager = TaskManager() if TaskManager else None
         self.heartbeat_manager = HeartbeatManager(task_manager=self.task_manager) if HeartbeatManager else None
+        self.task_manager = TaskManager() if TaskManager else None
+        self.heartbeat_manager = HeartbeatManager(task_manager=self.task_manager) if HeartbeatManager else None
         if self.heartbeat_manager:
             self.heartbeat_manager.start()
+
+        try:
+            from projects.aether.core.dashboard import CivilizationDashboard
+            self.dashboard = CivilizationDashboard(self)
+        except ImportError:
+            self.dashboard = None
 
     def add_agent(self, agent, position):
         """Adds an agent to the simulation at the specified position."""
@@ -55,7 +64,7 @@ class SimulationEngine:
             return tuple(map(int, match.groups()))
         return None
 
-    def step(self):
+    def step(self, **kwargs):
         """Executes a single step in the simulation."""
         self.current_step += 1
         print(f"\n--- Simulation Step {self.current_step} ---")
@@ -90,11 +99,17 @@ class SimulationEngine:
             if hasattr(agent, 'task_manager') and agent.task_manager is None:
                 agent.task_manager = self.task_manager
 
-            agent.perform_task(self.agents)
+            agent.perform_task(agents=self.agents, **kwargs)
 
         # Update hazards
         if self.hazard_manager:
             self.hazard_manager.step(self.agents)
+
+        # Update Dashboard
+        if self.dashboard:
+            self.dashboard.update_metrics(foundry_list=kwargs.get("foundry_list"))
+            if self.current_step % 50 == 0:
+                self.dashboard.display_report()
 
         # Distribute Tasks if items found
         if self.task_manager:

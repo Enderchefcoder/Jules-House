@@ -173,22 +173,35 @@ class HumanoidTitan(HumanoidAgent):
                 return super().cooperative_repair(target_agent)
         return False
 
-    def perform_task(self, agents=None):
+    def perform_task(self, agents=None, **kwargs):
         """Extended task performance: Titans prioritize building if they have materials."""
-        # 2026 Autonomous Infrastructure Logic
-        # Check swarm needs: If many agents are low health, prioritize Research Labs
-        # If communication is limited, build Relay Stations.
+        # 2026 Strategic Infrastructure Logic
+        # Factors in Swarm Needs, Market Sentiment, and Environmental Threats.
 
         has_alloy = self.inventory.get("Alloy", 0) >= 10
         has_metal = self.inventory.get("Metal", 0) >= 20
         has_data = self.inventory.get("Data", 0) >= 20
 
-        # 0. Autonomous Industrial Upgrade check
+        # 0. Strategic Context Acquisition
+        sentiment = 0.5
+        vibe = 0.5
+        interference = 0.0
+        if self.message_bus and hasattr(self.message_bus, 'global_state'):
+            sentiment = self.message_bus.global_state.get("sentiment", 0.5)
+            vibe = self.message_bus.global_state.get("vibe", 0.5)
+            interference = self.message_bus.global_state.get("interference", 0.0)
+
+        # Economic Vitality: Low sentiment (panic) means high prices; we need more Foundries.
+        economic_vitality = sentiment
+        # Environmental Threat: Low vibe + High interference = Critical need for Research/Relays.
+        environmental_threat = (1.0 - vibe) + (interference * 0.5)
+
+        # 1. Autonomous Industrial Upgrade check
         if has_alloy and has_data:
             if self.upgrade_infrastructure():
                 return
 
-        # 1. 2026 Swarm Mutual Aid: Check for critical agents first
+        # 2. 2026 Swarm Mutual Aid: Check for critical agents first
         need_health, need_relay, critical_agent = self.scan_swarm_needs()
 
         if critical_agent:
@@ -200,32 +213,41 @@ class HumanoidTitan(HumanoidAgent):
             else:
                 # Move towards critical agent
                 self.current_target = critical_agent.position
-                # Proceed to movement logic below by skipping infrastructure checks for now
+                # Proceed to movement logic below
 
+        # 3. Tactical Infrastructure Deployment
         if has_alloy or has_metal:
-            # 2026: Informed Decision Making
+            # Priority A: Environmental Resilience (Research Labs & Relays)
+            if environmental_threat > 0.7:
+                if need_health and self.build_research_lab():
+                    return
+                if need_relay and self.build_relay_station():
+                    return
+
+            # Priority B: Economic Expansion (Foundries)
+            if economic_vitality < 0.4:
+                 if self.inventory.get("Alloy", 0) >= 10 and self.inventory.get("Metal", 0) >= 30:
+                     if self.build_foundry_complex():
+                         return
+
+            # Priority C: General Utility
             if need_health and self.build_research_lab():
                 return
-
             if need_relay:
                 if self.build_relay_station():
                     return
                 else:
-                    # Drive toward a location lacking coverage
-                    # For simulation, we'll pick a random edge of the current known coverage
-                    # or just a distant point if no relays exist
-                    if not self.message_bus or not self.message_bus.relays:
+                    if not self.message_bus or not getattr(self.message_bus, 'relays', []):
                          self.current_target = (10, 10, 10)
                     else:
-                         # Pick a position far from any relay
                          self.current_target = (random.randint(0, 19), random.randint(0, 19), random.randint(0, 19))
 
-        # 2. Industrial Expansion: If resources are overflowing, build more Foundries
+        # 4. Industrial Expansion: If resources are overflowing
         if self.inventory.get("Alloy", 0) >= 20 and self.inventory.get("Metal", 0) >= 40:
              if self.build_foundry_complex():
                  return
 
-        # 3. Default to general outpost if materials allow
+        # 5. Default Outpost
         if self.inventory.get("Metal", 0) >= self.build_materials["Metal"] or \
            self.inventory.get("Alloy", 0) >= self.build_materials["Alloy"]:
             current_tile = self.world.get_item(self.position)
@@ -233,8 +255,8 @@ class HumanoidTitan(HumanoidAgent):
                 if self.build_outpost():
                     return
 
-        # 4. Otherwise, behave like a standard agent (Scavenging)
-        super().perform_task(agents=agents)
+        # 6. Otherwise, behave like a standard agent (Scavenging)
+        super().perform_task(agents=agents, **kwargs)
 
 if __name__ == "__main__":
     print("HumanoidTitan module loaded.")

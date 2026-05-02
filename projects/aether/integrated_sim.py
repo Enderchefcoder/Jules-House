@@ -149,8 +149,8 @@ def run_integrated_sim():
     print(f"Agents Active: {[a.name for a in agents]}")
 
     # 7. Run Simulation Steps - Extended for deeper emergence
-    for i in range(1, 501):
-        engine.step()
+    for i in range(1, 1001):
+        engine.step(foundry_list=[foundry_1, foundry_2])
 
         # Update ARGUS Global Monitoring
         event = argus.scan_globe()
