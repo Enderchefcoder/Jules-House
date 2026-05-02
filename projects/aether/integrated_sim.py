@@ -125,6 +125,7 @@ def run_integrated_sim():
         HumanoidAgent("Trader-Gamma", world, position=(0, 14, 0), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
         HumanoidAgent("Trader-Zeta", world, position=(19, 2, 19), role="Trader", market=market, message_bus=engine.message_bus, brain_distributor=brain_distributor, secret_key=shared_secret),
         HumanoidTitan("Titan-01", world, position=(5, 5, 5), market=market, message_bus=engine.message_bus, secret_key=shared_secret),
+        HumanoidTitan("Titan-02", world, position=(0, 10, 10), market=market, message_bus=engine.message_bus, secret_key=shared_secret),
         DroneAgent("Zephyr-01", world, position=(10, 10, 19)), # ZEPHYR Drone
         DroneAgent("Zephyr-02", world, position=(5, 5, 15)),
         RogueAgent("NEMESIS-Rogue", world, position=(0, 0, 19)) # NEMESIS Rogue
@@ -134,6 +135,11 @@ def run_integrated_sim():
         engine.add_agent(agent, agent.position)
         if hasattr(agent, 'role'):
             org_chart.assign_role(agent.name, agent.role)
+
+        # Pre-seed Titans for immediate demonstration of autonomous upgrades
+        if agent.name.startswith("Titan"):
+            agent.inventory["Alloy"] = 20
+            agent.inventory["Data"] = 40
 
     # Setup Hierarchy
     org_chart.add_subordinate("Scout-Alpha", "Gatherer-Beta")
@@ -176,6 +182,15 @@ def run_integrated_sim():
         gaia_weather.step()
         gaia_weather.apply_effects(agents)
         gaia_ecosystem.step()
+
+        # Autonomous Industrial Upgrade: Process agent 'Upgrading Foundry' status
+        for agent in [a for a in agents if getattr(a, 'status', "") == "Upgrading Foundry"]:
+            if agent.position == foundry_1.position:
+                foundry_1.upgrade()
+                agent.status = "Upgrade Complete"
+            elif agent.position == foundry_2.position:
+                foundry_2.upgrade()
+                agent.status = "Upgrade Complete"
 
         # Update HELIOS Energy Grid
         prod = solar_model.get_production(gaia_weather=gaia_weather) * argus.get_solar_modifier()

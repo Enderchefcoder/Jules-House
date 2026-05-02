@@ -453,6 +453,11 @@ class HumanoidAgent:
         # Update input vector with sensory vibe
         brain_input[8] = sensory_vibe
 
+        # 2026: Tactile Proximity Integration (Input index 9)
+        if hasattr(self.world, 'get_tactile_proximity'):
+            tactile_proximity = self.world.get_tactile_proximity(self.position)
+            brain_input[9] = tactile_proximity
+
         # HYDRA Offloading logic: Call remote compute if battery is low
         if self.battery < 40 and self.brain_distributor:
             success = self.brain_distributor.request_inference(self.name, brain_input)

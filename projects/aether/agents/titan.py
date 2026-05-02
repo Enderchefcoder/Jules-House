@@ -91,6 +91,26 @@ class HumanoidTitan(HumanoidAgent):
             return True
         return False
 
+    def upgrade_infrastructure(self):
+        """
+        2026 Autonomous Industrial Upgrade: Titans can upgrade existing foundries.
+        Costs 10 Alloy and 20 Data.
+        """
+        current_item = self.world.get_item(self.position)
+        if current_item == "foundry":
+            has_resources = self.inventory.get("Alloy", 0) >= 10 and self.inventory.get("Data", 0) >= 20
+            if has_resources:
+                # Find the foundry object (assuming global registry or world search)
+                # In integrated_sim, we'd need a way to find the foundry instance at this pos
+                # For now, we'll use a placeholder logic that would be handled in the sim loop
+                # but we'll decrement resources here.
+                self.inventory["Alloy"] -= 10
+                self.inventory["Data"] -= 20
+                self.status = "Upgrading Foundry"
+                print(f"[TITAN] {self.name} initiated autonomous upgrade of Foundry at {self.position}!")
+                return True
+        return False
+
     def scan_swarm_needs(self):
         """
         2026 Swarm-Aware Sensing: Titans assess environmental and agent states.
@@ -161,6 +181,12 @@ class HumanoidTitan(HumanoidAgent):
 
         has_alloy = self.inventory.get("Alloy", 0) >= 10
         has_metal = self.inventory.get("Metal", 0) >= 20
+        has_data = self.inventory.get("Data", 0) >= 20
+
+        # 0. Autonomous Industrial Upgrade check
+        if has_alloy and has_data:
+            if self.upgrade_infrastructure():
+                return
 
         # 1. 2026 Swarm Mutual Aid: Check for critical agents first
         need_health, need_relay, critical_agent = self.scan_swarm_needs()
